@@ -54,3 +54,4 @@ dkms.conf
 /hash
 /data
 /mkfs
+/build
