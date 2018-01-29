@@ -11,7 +11,7 @@ int is_mounted(char *dev_path) {
         is_mounted = 0;
 
     if ((file = fopen("/proc/mounts", "r")) == NULL)
-        mkfs_perror("Error opening /proc/mounts. Aborting.");
+        mkfs_error("Error opening /proc/mounts. Aborting.");
 
     if ((line = malloc(sizeof(char) * max_chars)) == NULL)
         mkfs_error("Error malloc`ing line for is_mounted");
@@ -58,28 +58,23 @@ void setup_sb(struct hashfs_superblock *sb){
     sb->hashkeys_size = max_files * 10 * hasmap_key_size;
     sb->bitmap_size = max_files * 10 / 8;
     sb->inode_table_size = 265 * max_files;
+
+    sb->next_inode = 0;
+    sb->next_data = 0;
 }
 
 void write_sb(int dev_fd, struct hashfs_superblock *sb){
     int w = write(dev_fd, sb, sizeof(*sb));
-
     if (w != sizeof(*sb))
-        if (w == -1)
-            mkfs_perror("write_sb");
-        else
-            mkfs_error("sb written partially");
+        mkfs_error("write_sb");
 }
 
 // Bitmap
 
 void zerofy_bitmap(int dev_fd, struct hashfs_superblock *sb){
     int w = write(dev_fd, calloc(1, sb->bitmap_size), sb->bitmap_size);
-
     if (w != sb->bitmap_size)
-        if (w == -1)
-            mkfs_perror("zerofy_bitmap");
-        else
-            mkfs_error("bitmap zero`ed partially");
+        mkfs_error("zerofy_bitmap");
 }
 
 
@@ -89,7 +84,7 @@ int open_dev(char *dev_path) {
     int fd = open(dev_path, O_WRONLY);
 
     if (fd == -1)
-        mkfs_perror("open device");
+        mkfs_error("open device");
 
     return fd;
 }

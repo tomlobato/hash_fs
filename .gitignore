@@ -55,3 +55,6 @@ dkms.conf
 /data
 /mkfs
 /build
+
+._.DS_Store
+.DS_Store
