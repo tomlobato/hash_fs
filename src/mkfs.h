@@ -7,10 +7,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
-// #define __INT8_TYPE__
-// #define __INT24_TYPE__
-// #define __INT32_TYPE__
+#include <libgen.h>
 #include <stdint.h>
 
 #include "util.h"

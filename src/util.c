@@ -1,5 +1,31 @@
 #include "util.h"
 
+// Mem
+
+void *_mkfs_malloc(char *file, long line, size_t size){
+    void *ptr;  
+
+    ptr = malloc(size);
+
+    if (ptr == NULL)
+        mkfs_error("Unable to allocate memory (malloc) at %s:%ld", file, line);
+
+    return ptr;
+}
+
+void *_mkfs_calloc(char *file, long line, size_t nmemb, size_t size){
+    void *ptr;  
+
+    ptr = calloc(nmemb, size);
+
+    if (ptr == NULL)
+        mkfs_error("Unable to allocate memory (calloc) at %s:%ld", file, line);
+
+    return ptr;
+}
+
+// Math
+
 int is_prime(unsigned long long num)
 {
     if (num <= 1) return 0;
@@ -22,6 +48,8 @@ unsigned long long next_prime(unsigned long long i){
     return i;
 }
 
+// File
+
 long long get_num_from_file(char *path1, char *path2) {
     FILE *file;
     int max_chars = 1024;
@@ -32,18 +60,17 @@ long long get_num_from_file(char *path1, char *path2) {
         mkfs_error("path1 cannot be NULL. Aborting.");
 
     if (path2 == NULL) {
-        path = malloc(sizeof(char) * strlen(path1) + 1);
+        path = mkfs_malloc(sizeof(char) * strlen(path1) + 1);
         strcpy(path, path1);
     } else {
-        path = malloc(sizeof(char) * (strlen(path1) + strlen(path2)) + 2);
+        path = mkfs_malloc(sizeof(char) * (strlen(path1) + strlen(path2)) + 2);
         sprintf(path, "%s/%s", path1, path2);
     }
 
     if ((file = fopen(path, "r")) == NULL)
         mkfs_error("Error opening %s. Aborting.", path);
 
-    if ((content = malloc(sizeof(char) * max_chars)) == NULL)
-        mkfs_error("Error allocation memory to read %s", path);
+    content = mkfs_malloc( sizeof(char) * max_chars );
 
     if (fgets(content, max_chars, file) == NULL)
         mkfs_error("Error reading file %s", path);
@@ -51,11 +78,12 @@ long long get_num_from_file(char *path1, char *path2) {
     return atoll(content);
 }
 
+// String
+
 char *mk_str(char *fmt, char *str){
     char *out;
 
-    if ((out = malloc(sizeof(char) * (strlen(fmt) + strlen(str)))) == NULL);
-        mkfs_error("Error allocation memory for mk_str\n");
+    out = mkfs_malloc(sizeof(char) * (strlen(fmt) + strlen(str)));
 
     if (sprintf(out, fmt, str) < 0)
         mkfs_error("Error mk_str`ing string\n");

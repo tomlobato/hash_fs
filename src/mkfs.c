@@ -12,8 +12,7 @@ int is_mounted(char *dev_path) {
     if ((file = fopen("/proc/mounts", "r")) == NULL)
         mkfs_error("Error opening /proc/mounts. Aborting.");
 
-    if ((line = malloc(sizeof(char) * max_chars)) == NULL)
-        mkfs_error("Error malloc`ing line for is_mounted");
+    line = mkfs_malloc(sizeof(char) * max_chars);
 
     while(fgets(line, max_chars, file) != NULL) {
         line[max_chars - 1] = '\0';
@@ -49,8 +48,7 @@ void check(char *dev_path){
 struct sb_settings *get_sb_settings(struct devinfo *dev_info){
     struct sb_settings *s;
 
-    if ((s = calloc(1, sizeof(struct sb_settings))) == NULL)
-        mkfs_error("Error allocating memory for sb_settings");;
+    s = mkfs_calloc(1, sizeof(struct sb_settings));
 
     s->max_file_size = 16 * pow(2, 40); // 16GB
     s->max_files = 8388608;
@@ -58,16 +56,22 @@ struct sb_settings *get_sb_settings(struct devinfo *dev_info){
     return s;
 }
 
-struct devinfo *get_dev_info(char *dev_name){
+char *get_dev_dir(char *dev_file) {
+    char *dev_name;
+
+    dev_name = mkfs_malloc(sizeof(char) * strlen(dev_file));
+    dev_name = basename(dev_file);
+
+    return mk_str("/sys/class/block/%s", dev_name);
+}
+
+struct devinfo *get_dev_info(char *dev_file){
     struct devinfo *info;
-    char *dev_dir, *dev_file;
+    char *dev_dir;
     struct stat *stat_buf;
 
-    dev_dir = mk_str("/sys/class/block/%s", dev_name);
-    dev_file = mk_str("/dev/%s", dev_name);
-
-    if ((info = calloc(1, sizeof(struct devinfo))) == NULL)
-        mkfs_error("Error allocating memory for dev_info");
+    info = mkfs_calloc(1, sizeof(struct devinfo));
+    dev_dir = get_dev_dir(dev_file);
 
     // sector_num
     info->sector_num = get_num_from_file(dev_dir, "size");
@@ -79,8 +83,7 @@ struct devinfo *get_dev_info(char *dev_name){
     info->size = info->sector_size * info->sector_num;
 
     // block_size
-    if ((stat_buf = malloc(sizeof(struct stat))) == NULL)
-        mkfs_error("Error allocating memory for stat_buf\n");
+    stat_buf = mkfs_malloc(sizeof(struct stat));
     if (stat(dev_file, stat_buf) == -1)
         mkfs_error("Error reading %s\n", dev_file);
     info->block_size = stat_buf->st_blksize;
@@ -129,25 +132,43 @@ int open_dev(char *dev_path) {
     int fd = open(dev_path, O_WRONLY);
 
     if (fd == -1)
-        mkfs_error("open device");
+        mkfs_error("Error while opening device %s. Aborting.", dev_path);
 
     return fd;
+}
+
+void calc_metadata(char *dev_path, struct hashfs_superblock *sb){
+    struct devinfo *dev_info;
+    struct sb_settings *settings;
+
+    dev_info = get_dev_info(dev_path);
+    settings = get_sb_settings(dev_info);
+
+    setup_sb(sb, dev_info, settings);
 }
 
 void mkfs(char *dev_path){
     struct hashfs_superblock sb;
     int dev_fd;
-    struct devinfo *dev_info;
-    struct sb_settings *settings;
-    
-    dev_info = get_dev_info(dev_path);
-    settings = get_sb_settings(dev_info);
-    setup_sb(&sb, dev_info, settings);
+
+    // Calculating metadata
+    printf("Calculating metadata info...\n");
+    calc_metadata(dev_path, &sb);
+
+    // Write to disk
 
     dev_fd = open_dev(dev_path);
+
+    printf("Writing superblock...\n");
     write_sb(dev_fd, &sb);
+
+    printf("Zero`ing hash bitmap...\n");
     zerofy_bitmap(dev_fd, &sb);
-    close(dev_fd);
+    
+    if(close(dev_fd) == -1)
+        mkfs_error("Error closing device %s.", dev_path);
+
+    printf("HashFs created successfully.\n");
 }
 
 int main(int argc, char **argv) {
