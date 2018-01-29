@@ -74,10 +74,10 @@ struct devinfo *get_dev_info(char *dev_file){
     dev_dir = get_dev_dir(dev_file);
 
     // sector_num
-    info->sector_num = get_num_from_file(dev_dir, "size");
+    info->sector_num = get_num_from_file(join_paths(dev_dir, "size"));
 
     // sector_size
-    info->sector_size = get_num_from_file(dev_dir, "queue/hw_sector_size");
+    info->sector_size = get_num_from_file(join_paths(dev_dir, "queue/hw_sector_size"));
 
     // size
     info->size = info->sector_size * info->sector_num;

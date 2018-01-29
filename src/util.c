@@ -50,22 +50,14 @@ unsigned long long next_prime(unsigned long long i){
 
 // File
 
-long long get_num_from_file(char *path1, char *path2) {
+long long get_num_from_file(char *path) {
     FILE *file;
     int max_chars = 1024;
     char *content;
-    char *path;
 
-    if (path1 == NULL)
+    if (path == NULL)
         mkfs_error("path1 cannot be NULL. Aborting.");
 
-    if (path2 == NULL) {
-        path = mkfs_malloc(sizeof(char) * strlen(path1) + 1);
-        strcpy(path, path1);
-    } else {
-        path = mkfs_malloc(sizeof(char) * (strlen(path1) + strlen(path2)) + 2);
-        sprintf(path, "%s/%s", path1, path2);
-    }
 
     if ((file = fopen(path, "r")) == NULL)
         mkfs_error("Error opening %s. Aborting.", path);
@@ -89,6 +81,18 @@ char *mk_str(char *fmt, char *str){
         mkfs_error("Error mk_str`ing string\n");
 
     return out;
+}
+
+char *join_paths(char *p1, char *p2) {
+    char *path;
+    
+    if (p1 == NULL || p2 == NULL)
+        mkfs_error("paths cannot be NULL. Aborting.");
+
+    path = mkfs_malloc(sizeof(char) * (strlen(p1) + strlen(p2)) + 2);
+    sprintf(path, "%s/%s", p1, p2);
+
+    return path;
 }
 
 
