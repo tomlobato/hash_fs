@@ -1,12 +1,19 @@
-
 #include <stdlib.h>     
 #include <stdio.h>      
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdint.h>
 #include <error.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+// #define __INT8_TYPE__
+// #define __INT24_TYPE__
+// #define __INT32_TYPE__
+#include <stdint.h>
+
+#include "util.h"
 
 #define IS_DEV
 
@@ -14,23 +21,22 @@
     #define ALLOW_DEVICE "/dev/sdb"
 #endif
 
-#define mkfs_error(args...) error_at_line(1, errno, __FILE__, __LINE__, args);
-
 // Hash FS
 
-#define HASH_FS_VERSION 1
-#define HASH_FS_MAGIC 0x777
+#define HASHFS_VERSION 1
+#define HASHFS_MAGIC 0x777
 
-typedef uint24_t inode_ptr;
-typedef uint32_t data_ptr;
+#define HASHFS_HASH_MODULUS_FACTOR 10
 
 struct hashfs_superblock {
     uint64_t version;
     uint64_t magic;
     uint64_t blocksize;
 
+    uint64_t max_file_size;
+
     uint64_t bitmap_size;
-    uint64_t hashkeys_size;
+    uint64_t hash_len;
     uint64_t inode_table_size;
 
     uint64_t start_bitmap;
@@ -38,16 +44,32 @@ struct hashfs_superblock {
     uint64_t start_inodes;
     uint64_t start_data;
 
-    inode_ptr next_inode;
-    data_ptr next_data;
+    uint64_t next_inode;
+    uint64_t next_data;
 };
 
 struct hashfs_inode {
-    data_ptr block;
-    uint_32_t size;
-    uint_8_t  name_size;
+    uint32_t block;
+    uint32_t size;
+    uint8_t  name_size;
     char *name;
-    inode_ptr next;
+    uint64_t next;
+};
+
+// Aux
+
+struct sb_settings {
+    uint64_t disk_size;
+    uint64_t max_files;
+    uint64_t max_file_size;
+};
+
+struct devinfo {
+    uint64_t sector_num;
+    uint64_t sector_size;
+    uint64_t block_num;
+    uint64_t block_size;
+    uint64_t size;
 };
 
 
