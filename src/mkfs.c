@@ -63,11 +63,11 @@ void setup_sb(struct hashfs_superblock *sb){
 void write_sb(int dev_fd, struct hashfs_superblock *sb){
     int w = write(dev_fd, sb, sizeof(*sb));
 
-    if (w == -1)
-        mkfs_perror("write_sb");
-
     if (w != sizeof(*sb))
-        mkfs_error("sb written partially");
+        if (w == -1)
+            mkfs_perror("write_sb");
+        else
+            mkfs_error("sb written partially");
 }
 
 // Bitmap
@@ -75,11 +75,11 @@ void write_sb(int dev_fd, struct hashfs_superblock *sb){
 void zerofy_bitmap(int dev_fd, struct hashfs_superblock *sb){
     int w = write(dev_fd, calloc(1, sb->bitmap_size), sb->bitmap_size);
 
-    if (w == -1)
-        mkfs_perror("zerofy_bitmap");
-
     if (w != sb->bitmap_size)
-        mkfs_error("bitmap zero`ed partially");
+        if (w == -1)
+            mkfs_perror("zerofy_bitmap");
+        else
+            mkfs_error("bitmap zero`ed partially");
 }
 
 
