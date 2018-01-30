@@ -76,17 +76,18 @@ int get_hash_slot_size(uint64_t inode_count){
 }
 
 void setup_sb(struct hashfs_superblock *sb, struct devinfo *dev_info, struct sb_settings *settings){
-    // Constants
     sb->version                 = HASHFS_VERSION;
     sb->magic                   = HASHFS_MAGIC;
     sb->superblock_offset_byte  = HASHFS_SB_OFFSET;
+    memcpy(sb->uuid, mk_uuid(), 36);
 
     // From disk info
     sb->blocksize = dev_info->blocksize;
     sb->inode_count = get_inode_count(dev_info->block_count);
-    sb->hash_len = next_prime(sb->inode_count * HASHFS_HASH_MODULUS_FACTOR);
 
     //// Derived ////
+
+    sb->hash_len = next_prime(sb->inode_count * HASHFS_HASH_MODULUS_FACTOR);
 
     // bitmap
     sb->bitmap_offset_blk = HASHFS_BITMAP_OFFSET_BLK;
@@ -144,15 +145,6 @@ void zerofy_bitmap(int dev_fd, struct hashfs_superblock *sb){
 }
 
 // Main
-
-int open_dev(char *dev_path) {
-    int fd = open(dev_path, O_WRONLY);
-
-    if (fd == -1)
-        mkfs_error("Error while opening device %s. Aborting.", dev_path);
-
-    return fd;
-}
 
 void print_setup(char *dev_path, struct hashfs_superblock *sb, struct devinfo *dev_info, struct sb_settings *settings) {    
     printf("disk size\t%.2lf GB\n", (double)dev_info->size / pow(2, 30));

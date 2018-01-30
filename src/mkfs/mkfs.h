@@ -31,13 +31,13 @@
 
 // https://docs.google.com/spreadsheets/d/1HkgOJFZwWhxS5sdxalrPe4urQfaviGriIXZLOjGbrfY/edit#gid=0
 
-// blk 1        blk 2            blk k          blk l           blk m
-// superblock   bitmap_offset    hash_offset    inodes_offset   data_offset
-//              ...bitmap_size   ...hash_size   ..inodes_size   ...data_size
+// blk 0 / byte 1024    blk 1     blk x      blk y       blk z
+// superblock           bitmap    hash       inodes      data
 
 struct hashfs_superblock {
     uint64_t version;
     uint64_t magic;
+    char uuid[36];
 
     uint16_t blocksize;
 
@@ -56,8 +56,8 @@ struct hashfs_superblock {
     uint64_t data_size;         // bytes
     
     uint64_t inode_count;
-    uint64_t hash_len;       // number of slots in the hash
-    uint64_t hash_slot_size; // size in bytes of the hash slot
+    uint64_t hash_len;          // number of slots in the hash
+    uint64_t hash_slot_size;    // size in bytes of the hash slot
 
     uint64_t next_inode;
     uint64_t next_data;

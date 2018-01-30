@@ -94,3 +94,33 @@ int main(int argc, char **argv){
     return 0;
 }
 
+int main(int argc, char **argv) {
+    if (strcmp(argv[1], "add") == 0) {
+        if (argc != 4) 
+            help();
+        add(argv[2], argv[3]);
+    case "del":
+        if (argc != 2) help();
+        del(argv[2]);
+        break;
+    case "ls":
+        if (argc != 1) help();
+        ls();
+        break;
+    case "search":
+        if (argc < != 2) help();
+        search(argv[2]);
+        break;
+    } else {
+        help();
+    }
+
+    return 0;
+}
+
+
+void help(){
+    printf("usage:\nkern add name src\nkern ls\nkern del name\nkern search name\n");
+    exit(1);
+}
+

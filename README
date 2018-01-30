@@ -1,0 +1,4 @@
+// https://docs.google.com/spreadsheets/d/1HkgOJFZwWhxS5sdxalrPe4urQfaviGriIXZLOjGbrfY/edit#gid=0
+
+// blk 0 / byte 1024    blk 1     blk x      blk y       blk z
+// superblock           bitmap    hash       inodes      data

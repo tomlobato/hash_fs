@@ -143,6 +143,15 @@ void zerofy(int fd, off_t offset, size_t count, int buf_len){
     }
 }
 
+int open_dev(char *dev_path) {
+    int fd = open(dev_path, O_WRONLY);
+
+    if (fd == -1)
+        mkfs_error("Error while opening device %s. Aborting.", dev_path);
+
+    return fd;
+}
+
 // String
 
 char *mk_str(char *fmt, char *str){
