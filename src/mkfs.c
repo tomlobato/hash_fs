@@ -60,41 +60,88 @@ struct devinfo *get_dev_info(char *dev_file){
     return info;
 }
 
+uint64_t get_inode_count(uint64_t block_count){
+    return block_count / 4; // TODO: develop a criteria
+}
+
+uint64_t max_inode_size(){
+    return sizeof(struct hashfs_inode) + 
+           sizeof(filename_size);
+}
+
+int get_hash_slot_size(uint64_t inode_count){
+    return ceil(
+        log2(inode_count * max_inode_size()) / 8
+    )
+}
+
 void setup_sb(struct hashfs_superblock *sb, struct devinfo *dev_info, struct sb_settings *settings){
     // Constants
-    sb->version = HASHFS_VERSION;
-    sb->magic = HASHFS_MAGIC;
-    sb->superblock_offset = HASHFS_SB_OFFSET;
-    sb->superblock_size = HASHFS_SB_SIZE;
+    sb->version             = HASHFS_VERSION;
+    sb->magic               = HASHFS_MAGIC;
+    sb->superblock_offset   = HASHFS_SB_OFFSET;
+    sb->superblock_size     = HASHFS_SB_SIZE;
 
     // From disk info
     sb->blocksize = dev_info->blocksize;
+    sb->inode_count = get_inode_count(dev_info->block_count);
+    sb->hash_len = next_prime(sb->inode_count * HASHFS_HASH_MODULUS_FACTOR);
 
-    // Derived
+    //// Derived ////
+
+    // bitmap
     sb->bitmap_offset = sb->superblock_offset + 1;
-    sb->bitmap_size = 234;
+    sb->bitmap_size = sb->hash_len / 8 + 1; // sb->hash_len is prime, so its division by any number (inclusive 8) is not exact.
+                                            // Thats why we need to sum 1.
 
-    // uint64_t hasmap_key_size = 3;
-    // sb->hash_len = next_prime(settings->max_files * HASHFS_HASH_MODULUS_FACTOR);
-    // sb->hashkeys_size = max_files * HASHFS_HASH_MODULUS_FACTOR * hasmap_key_size;
-    // sb->bitmap_size = settings->max_files * HASHFS_HASH_MODULUS_FACTOR / 8;
-    // sb->inode_table_size = 265 * settings->max_files;
-    // sb->next_inode = 0;
-    // sb->next_data = 0;
+    // hash
+    sb->hash_offset = sb->bitmap_offset + sb->bitmap_size / sb->blocksize;
+    if (sb->bitmap_size % sb->blocksize) sb->hash_offset++;
+
+    sb->hash_slot_size = get_hash_slot_size();
+    sb->hash_size = sb->hash_len * sb->hash_slot_size;
+
+    // inodes
+    sb->inodes_offset = sb->hash_offset + sb->hash_size / sb->blocksize;
+    if (sb->hash_size / sb->blocksize) sb->inodes_offset++;
+
+    sb->inodes_size = sb->hash_size;
+
+    // data
+    sb->data_offset = sb->inodes_offset + sb->inodes_size / sb->blocksize;
+    if (sb->inodes_size / sb->blocksize) sb->data_offset++;
+    sb->data_size = dev_info->size - sb->data_offset * sb->blocksize;
+
+    // Init
+    sb->next_inode = 0;
+    sb->next_data = 0;
 }
 
 void write_sb(int dev_fd, struct hashfs_superblock *sb){
-    int w = write(dev_fd, sb, sizeof(*sb));
-    if (w != sizeof(*sb))
-        mkfs_error("write_sb");
+    zerofy(dev_fd, 
+           sb->superblock_offset * sb->blocksize, 
+           sb->blocksize,
+           sb->blocksize);
+
+    if (lseek(dev_fd, sb->superblock_offset * sb->blocksize, SEEK_SET) == -1)
+        mkfs_error("write_sb: error lseek`ing disk");
+
+    int w = write(dev_fd, sb, sizeof(struct hashfs_superblock));
+    if (w != sizeof(struct hashfs_superblock))
+        mkfs_error("write_sb: error writing");
 }
 
 // Bitmap
 
 void zerofy_bitmap(int dev_fd, struct hashfs_superblock *sb){
-    int w = write(dev_fd, calloc(1, sb->bitmap_size), sb->bitmap_size);
-    if (w != sb->bitmap_size)
-        mkfs_error("zerofy_bitmap");
+    int count = sb->bitmap_size / sb->blocksize;
+    if (sb->bitmap_size % sb->blocksize) 
+        count++;
+
+    zerofy(dev_fd, 
+           sb->bitmap_offset * sb->blocksize, 
+           count, 
+           sb->blocksize * 10);
 }
 
 // Main
@@ -119,13 +166,14 @@ void calc_metadata(char *dev_path, struct hashfs_superblock *sb){
 }
 
 void mkfs(char *dev_path){
-    struct hashfs_superblock sb;
+    struct hashfs_superblock *sb;
     int dev_fd;
 
     // Calculating metadata
 
     printf("Calculating metadata info...\n");
-    calc_metadata(dev_path, &sb);
+    sb = mkfs_calloc(sizeof(struct hashfs_superblock));
+    calc_metadata(dev_path, sb);
 
     // Write to disk
 

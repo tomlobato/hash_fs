@@ -120,6 +120,27 @@ struct stat *mkfs_stat(char *path){
     return buf;
 }
 
+void zerofy(int fd, off_t offset, size_t count, int buf_len){
+    int write_len,
+        written,
+        rest;
+    void *buf;
+
+    if (lseek(fd, offset, SEEK_SET) == -1)
+        mkfs_error("zerofy: error lseek`ing disk");
+
+    buf = mkfs_calloc(buf_len);
+
+    rest = count;
+
+    while(rest) {
+        write_len = rest >= buf_len ? buf_len : rest;
+        written = write(fd, buf, write_len);
+        if (written == -1)
+            mkfs_error("zerofy: error writing to disk");
+        rest -= written;
+    }
+}
 
 // String
 

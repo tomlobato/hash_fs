@@ -27,3 +27,4 @@ int is_mounted(char *dev_path);
 char *mk_uuid();
 unsigned int hash(char *str);
 struct stat *mkfs_stat(char *path);
+void zerofy(int fd, off_t offset, size_t count, int buf_len);
