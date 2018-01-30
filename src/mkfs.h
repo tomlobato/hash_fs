@@ -29,6 +29,8 @@
 #define HASHFS_BITMAP_OFFSET_BLK 1
 #define HASHFS_DEFAULT_FILE_SIZE_BYTES 3
 
+// https://docs.google.com/spreadsheets/d/1HkgOJFZwWhxS5sdxalrPe4urQfaviGriIXZLOjGbrfY/edit#gid=0
+
 // blk 1        blk 2            blk k          blk l           blk m
 // superblock   bitmap_offset    hash_offset    inodes_offset   data_offset
 //              ...bitmap_size   ...hash_size   ..inodes_size   ...data_size
@@ -72,6 +74,7 @@ struct hashfs_inode {
                 // but on disk the name chars are saved right after the inode data
     uint64_t next; // pointer to the next inode in the hash bucket linked list
 };
+
 // Aux
 
 struct sb_settings {
