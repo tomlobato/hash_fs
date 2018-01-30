@@ -129,7 +129,8 @@ void zerofy(int fd, off_t offset, size_t count, int buf_len){
     if (lseek(fd, offset, SEEK_SET) == -1)
         mkfs_error("zerofy: error lseek`ing disk");
 
-    buf = mkfs_calloc(buf_len);
+    if (!buf_len) buf_len = (int)count;
+    buf = mkfs_calloc(1, buf_len);
 
     rest = count;
 

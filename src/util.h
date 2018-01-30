@@ -9,6 +9,8 @@
 #include <math.h>
 #include <time.h>
 #include <uuid/uuid.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #define XXH_STATIC_LINKING_ONLY
 #include "../lib/xxhash.h"
