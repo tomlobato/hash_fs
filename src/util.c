@@ -48,6 +48,14 @@ unsigned long long next_prime(unsigned long long i){
     return i;
 }
 
+char *mk_uuid(){
+    uuid_t uuid_bin;
+    uuid_generate(uuid_bin);
+    char *uuid = mkfs_malloc(sizeof(char) * 36);
+    uuid_unparse(uuid_bin, uuid);
+    return (char *)uuid;
+}
+
 // File
 
 long long get_num_from_file(char *path) {
@@ -69,6 +77,49 @@ long long get_num_from_file(char *path) {
 
     return atoll(content);
 }
+
+int is_mounted(char *dev_path) {
+    FILE *file;
+    char *line, 
+         *word;
+    int max_chars = 512, 
+        is_mounted = 0;
+
+    if ((file = fopen("/proc/mounts", "r")) == NULL)
+        mkfs_error("Error opening /proc/mounts. Aborting.");
+
+    line = mkfs_malloc(sizeof(char) * max_chars);
+
+    while(fgets(line, max_chars, file) != NULL) {
+        line[max_chars - 1] = '\0';
+
+        if ((word = strtok(line, " ")) == NULL)
+            continue;
+
+        if (strcmp(word, dev_path) == 0) {
+            is_mounted = 1;
+            goto ret;
+        }
+    }
+
+    {
+ret:
+        free(line);
+        return is_mounted;
+    }
+}
+
+struct stat *mkfs_stat(char *path){
+    struct stat *buf;
+    
+    buf = mkfs_malloc(sizeof(struct stat));
+
+    if (stat(path, buf) == -1)
+        mkfs_error("Error reading info about %s\n", path);
+
+    return buf;
+}
+
 
 // String
 
@@ -95,4 +146,10 @@ char *join_paths(char *p1, char *p2) {
     return path;
 }
 
-
+unsigned int hash(char *str)
+{
+    XXH32_state_t state32;
+    XXH32_reset(&state32, 0);
+    XXH32_update(&state32, str, strlen(str));    
+    return XXH32_digest(&state32);
+}

@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <math.h>
+#include <time.h>
 
 #include "../src/hash_function.h"
 
@@ -56,11 +57,40 @@ unsigned long long next_prime(unsigned long long i){
     return i;
 }
 
-int main(int argc, char **argv){
-    for(int i = 0; i <= 10; i++) {
-        unsigned long long n = pow(2, 8 * i);
-        printf("%llu\t%llu\n", n/2, next_prime(n/2));
-        printf("%llu\t%llu\n", n, next_prime(n));
+void uuid(){
+    srand (clock());
+    char GUID[40];
+    int t = 0;
+    char *szTemp = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+    char *szHex = "0123456789ABCDEF-";
+    int nLen = strlen (szTemp);
+
+    for (t=0; t<nLen+1; t++)
+    {
+        int r = rand () % 16;
+        char c = ' ';   
+
+        switch (szTemp[t])
+        {
+            case 'x' : { c = szHex [r]; } break;
+            case 'y' : { c = szHex [r & 0x03 | 0x08]; } break;
+            case '-' : { c = '-'; } break;
+            case '4' : { c = '4'; } break;
+        }
+
+        GUID[t] = ( t < nLen ) ? c : 0x00;
     }
+
+    printf ("%s\r\n", GUID);
+}
+
+int main(int argc, char **argv){
+    uuid();
+    // for(int i = 0; i <= 10; i++) {
+    //     unsigned long long n = pow(2, 8 * i);
+    //     printf("%llu\t%llu\n", n/2, next_prime(n/2));
+    //     printf("%llu\t%llu\n", n, next_prime(n));
+    // }
+    return 0;
 }
 

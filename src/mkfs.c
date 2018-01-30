@@ -2,37 +2,6 @@
 
 // Params
 
-int is_mounted(char *dev_path) {
-    FILE *file;
-    char *line, 
-         *word;
-    int max_chars = 512, 
-        is_mounted = 0;
-
-    if ((file = fopen("/proc/mounts", "r")) == NULL)
-        mkfs_error("Error opening /proc/mounts. Aborting.");
-
-    line = mkfs_malloc(sizeof(char) * max_chars);
-
-    while(fgets(line, max_chars, file) != NULL) {
-        line[max_chars - 1] = '\0';
-
-        if ((word = strtok(line, " ")) == NULL)
-            continue;
-
-        if (strcmp(word, dev_path) == 0) {
-            is_mounted = 1;
-            goto ret;
-        }
-    }
-
-    {
-ret:
-        free(line);
-        return is_mounted;
-    }
-}
-
 void check(char *dev_path){
     if (is_mounted(dev_path))
         mkfs_error("device %s is already mounted. Aborting.", dev_path);
@@ -50,8 +19,7 @@ struct sb_settings *get_sb_settings(struct devinfo *dev_info){
 
     s = mkfs_calloc(1, sizeof(struct sb_settings));
 
-    s->max_file_size = 16 * pow(2, 40); // 16GB
-    s->max_files = 8388608;
+    // s->max_files = 8388608;
     
     return s;
 }
@@ -68,48 +36,51 @@ char *get_dev_dir(char *dev_file) {
 struct devinfo *get_dev_info(char *dev_file){
     struct devinfo *info;
     char *dev_dir;
-    struct stat *stat_buf;
+    struct stat *dev_file_stat;
 
     info = mkfs_calloc(1, sizeof(struct devinfo));
     dev_dir = get_dev_dir(dev_file);
 
     // sector_num
-    info->sector_num = get_num_from_file(join_paths(dev_dir, "size"));
+    info->sector_count = get_num_from_file(join_paths(dev_dir, "size"));
 
     // sector_size
     info->sector_size = get_num_from_file(join_paths(dev_dir, "queue/hw_sector_size"));
 
     // size
-    info->size = info->sector_size * info->sector_num;
+    info->size = info->sector_size * info->sector_count;
 
     // block_size
-    stat_buf = mkfs_malloc(sizeof(struct stat));
-    if (stat(dev_file, stat_buf) == -1)
-        mkfs_error("Error reading %s\n", dev_file);
-    info->block_size = stat_buf->st_blksize;
+    dev_file_stat = mkfs_stat(dev_file);
+    info->blocksize = stat_buf->st_blksize;
 
     // block_num
-    info->block_num = info->size / info->block_size;
+    info->block_count = info->size / info->blocksize;
 
     return info;
 }
 
 void setup_sb(struct hashfs_superblock *sb, struct devinfo *dev_info, struct sb_settings *settings){
-    // uint64_t hasmap_key_size = 3;
-    
+    // Constants
     sb->version = HASHFS_VERSION;
     sb->magic = HASHFS_MAGIC;
-    sb->blocksize = 4096;
+    sb->superblock_offset = HASHFS_SB_OFFSET;
+    sb->superblock_size = HASHFS_SB_SIZE;
 
-    sb->hash_len = next_prime(settings->max_files * HASHFS_HASH_MODULUS_FACTOR);
+    // From disk info
+    sb->blocksize = dev_info->blocksize;
 
+    // Derived
+    sb->bitmap_offset = sb->superblock_offset + 1;
+    sb->bitmap_size = 234;
+
+    // uint64_t hasmap_key_size = 3;
+    // sb->hash_len = next_prime(settings->max_files * HASHFS_HASH_MODULUS_FACTOR);
     // sb->hashkeys_size = max_files * HASHFS_HASH_MODULUS_FACTOR * hasmap_key_size;
-    sb->bitmap_size = settings->max_files * HASHFS_HASH_MODULUS_FACTOR / 8;
-    sb->inode_table_size = 265 * settings->max_files;
-
-
-    sb->next_inode = 0;
-    sb->next_data = 0;
+    // sb->bitmap_size = settings->max_files * HASHFS_HASH_MODULUS_FACTOR / 8;
+    // sb->inode_table_size = 265 * settings->max_files;
+    // sb->next_inode = 0;
+    // sb->next_data = 0;
 }
 
 void write_sb(int dev_fd, struct hashfs_superblock *sb){
@@ -152,6 +123,7 @@ void mkfs(char *dev_path){
     int dev_fd;
 
     // Calculating metadata
+
     printf("Calculating metadata info...\n");
     calc_metadata(dev_path, &sb);
 
