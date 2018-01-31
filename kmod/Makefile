@@ -10,8 +10,5 @@ CFLAGS_util.o := -DDEBUG
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
-# mkfs-hashfs_SOURCES:
-# 	mkfs-hashfs.c hashfs.h
-
 clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean

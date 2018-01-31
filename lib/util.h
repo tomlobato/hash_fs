@@ -1,19 +1,20 @@
-#include <stdlib.h>     
-#include <stdio.h>      
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdint.h>
-#include <error.h>
 #include <errno.h>
+#include <error.h>
+#include <fcntl.h>
+#include <libgen.h>
 #include <math.h>
-#include <time.h>
-#include <uuid/uuid.h>
-#include <sys/types.h>
+#include <stdint.h>
+#include <stdio.h>      
+#include <stdlib.h>     
+#include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
+#include <uuid/uuid.h>
 
 #define XXH_STATIC_LINKING_ONLY
-#include "../../lib/xxhash.h"
+#include "xxhash.h"
 
 #define mkfs_error(args...)         error_at_line(1, errno, __FILE__, __LINE__, args);
 #define mkfs_malloc(size)           _mkfs_malloc(__FILE__, __LINE__, size);
@@ -31,3 +32,4 @@ unsigned int hash(char *str);
 struct stat *mkfs_stat(char *path);
 void zerofy(int fd, off_t offset, size_t count, int buf_len);
 int open_dev(char *dev_path);
+

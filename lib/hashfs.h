@@ -2,11 +2,7 @@
 #define HASHFS_VERSION 1
 #define HASHFS_VERSION_NAME "0.1"
 #define HASHFS_MAGIC 0x99C7FF92
-#define HASHFS_HASH_MODULUS_FACTOR 10
-#define HASHFS_DEFAULT_FILE_SIZE_BYTES 3
 #define HASHFS_SB_OFFSET 1024
-#define HASHFS_BITMAP_OFFSET_BLK 1
-#define HASHFS_DEFAULT_FILE_SIZE_BYTES 3
 #define HASHFS_DEFAULT_MODE_FILE 0100664
 #define HASHFS_DEFAULT_MODE_DIR  0040775
 
@@ -16,9 +12,8 @@ static const uint64_t HASHFS_SUPERBLOCK_BLOCK_NO = 0;
 struct hashfs_superblock {
     uint64_t version;
     uint64_t magic;
-    char uuid[36];
-
     uint16_t blocksize;
+    char uuid[36];
 
     uint64_t superblock_offset_byte;
 
@@ -37,7 +32,7 @@ struct hashfs_superblock {
     uint64_t inode_count;
     uint64_t hash_len;          // number of slots in the hash
     uint64_t hash_slot_size;    // size in bytes of the hash slot
-
+    uint64_t max_file_size;     // in bytes
     uint64_t next_inode;
     uint64_t next_data;
 };

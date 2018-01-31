@@ -1,11 +1,15 @@
 #include "k_hashfs.h"
 
 void hashfs_destroy_inode(struct inode *inode) {
+    printk(KERN_DEBUG "hashfs: called hashfs_destroy_inode\n");
     return;
 }
 
 void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
                         struct hashfs_inode *hashfs_inode) {
+
+    printk(KERN_DEBUG "hashfs: called hashfs_fill_inode\n");
+
     inode->i_sb = sb;
     inode->i_ino = hashfs_inode->ino;
     inode->i_op = &hashfs_inode_ops;
@@ -24,6 +28,7 @@ void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
 }
 
 int hashfs_alloc_hashfs_inode(struct super_block *sb, uint64_t *out_inode_no) {
+    printk(KERN_DEBUG "hashfs: called hashfs_alloc_hashfs_inode\n");
     return 0;
 }
 
@@ -46,6 +51,8 @@ int hashfs_alloc_hashfs_inode(struct super_block *sb, uint64_t *out_inode_no) {
 
 struct hashfs_inode *hashfs_get_root_dir_inode(struct super_block *sb) {
     struct hashfs_inode *inode;
+
+    printk(KERN_DEBUG "hashfs: called hashfs_get_root_dir_inode\n");
     
     inode = kmem_cache_alloc(hashfs_inode_cache, GFP_KERNEL);
     
@@ -61,34 +68,41 @@ struct hashfs_inode *hashfs_get_root_dir_inode(struct super_block *sb) {
 
 void hashfs_save_hashfs_inode(struct super_block *sb,
                                 struct hashfs_inode *inode_buf) {
+    printk(KERN_DEBUG "hashfs: called hashfs_save_hashfs_inode\n");
 }
 
 int hashfs_add_dir_record(struct super_block *sb, struct inode *dir,
                            struct dentry *dentry, struct inode *inode) {
+    printk(KERN_DEBUG "hashfs: called hashfs_add_dir_record\n");
     return 0;
 }
 
 int hashfs_alloc_data_block(struct super_block *sb, uint64_t *out_data_block_no) {
+    printk(KERN_DEBUG "hashfs: called hashfs_alloc_data_block\n");
     return 0;
 }
 
 int hashfs_create_inode(struct inode *dir, struct dentry *dentry,
                          umode_t mode) {
+    printk(KERN_DEBUG "hashfs: called hashfs_create_inode\n");
     return 0;
 }
 
 int hashfs_create(struct inode *dir, struct dentry *dentry,
                    umode_t mode, bool excl) {
+    printk(KERN_DEBUG "hashfs: called hashfs_create\n");
     return 0;
 }
 
 int hashfs_mkdir(struct inode *dir, struct dentry *dentry,
                   umode_t mode) {
+    printk(KERN_DEBUG "hashfs: called hashfs_mkdir\n");
     return 0;
 }
 
 struct dentry *hashfs_lookup(struct inode *dir,
                               struct dentry *child_dentry,
                               unsigned int flags) {
+    printk(KERN_DEBUG "hashfs: called hashfs_lookup\n");
     return NULL;
 }

@@ -15,7 +15,7 @@
 #include <linux/time.h>
 #include <linux/version.h>
 
-#include "hashfs.h"
+#include "../lib/hashfs.h"
 
 /* Declare operations to be hooked to VFS */
 
