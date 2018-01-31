@@ -53,9 +53,9 @@ dkms.conf
 
 /hash
 /data
-/mkfs
 /build
 
 ._.DS_Store
 .DS_Store
 .vscode/
+/mkfs/mkfs.hashfs
