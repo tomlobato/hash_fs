@@ -48,6 +48,8 @@ ssize_t hashfs_read(struct file * filp, char __user * buf, size_t len,
 ssize_t hashfs_write(struct file * filp, const char __user * buf, size_t len,
                        loff_t * ppos);
 
+extern struct kmem_cache *hashfs_inode_cache;
+
 // /* Helper functions */
 
 // // To translate VFS superblock to hashfs superblock
@@ -92,11 +94,14 @@ ssize_t hashfs_write(struct file * filp, const char __user * buf, size_t len,
 // void hashfs_save_sb(struct super_block *sb);
 
 // // functions to operate inode
-// void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
-//                         struct hashfs_inode *hashfs_inode);
+void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
+                        struct hashfs_inode *hashfs_inode);
 // int hashfs_alloc_hashfs_inode(struct super_block *sb, uint64_t *out_inode_no);
 // struct hashfs_inode *hashfs_get_hashfs_inode(struct super_block *sb,
 //                                                 uint64_t inode_no);
+
+struct hashfs_inode *hashfs_get_root_dir_inode(struct super_block *sb);
+
 // void hashfs_save_hashfs_inode(struct super_block *sb,
 //                                 struct hashfs_inode *inode);
 // int hashfs_add_dir_record(struct super_block *sb, struct inode *dir,
@@ -104,5 +109,7 @@ ssize_t hashfs_write(struct file * filp, const char __user * buf, size_t len,
 // int hashfs_alloc_data_block(struct super_block *sb, uint64_t *out_data_block_no);
 // int hashfs_create_inode(struct inode *dir, struct dentry *dentry,
 //                          umode_t mode);
+
+long long hashfs_pow(long long x, long long y);
 
 #endif /*__KHASHFS_H__*/
