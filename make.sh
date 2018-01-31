@@ -7,10 +7,12 @@ NC='\e[0m'
 
 cd `dirname $0`
 
-for tgt in fsck mkfs kmon; do
+for tgt in fsck mkfs kmod; do
     echo -e "${CYAN}==== mkfs.hashfs ${NC}"
 
-    cd mkfs && make clean && make
+    cd $tgt && \
+    make clean && \
+    make
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}success${NC}"
