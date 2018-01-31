@@ -67,22 +67,22 @@ struct dentry *hashfs_mount(struct file_system_type *fs_type,
                              int flags, const char *dev_name,
                              void *data) {
     struct dentry *ret;
-    printk(KERN_DEBUG "hashfs: called hashfs_mount\n");
+    printk(KERN_DEBUG "hashfs_mount\n");
     ret = mount_bdev(fs_type, flags, dev_name, data, hashfs_fill_super);
     printk(KERN_DEBUG "hashfs_mount ret=%p\n", ret);
 	return ret;
 }
 
 void hashfs_kill_superblock(struct super_block *sb) {
-    printk(KERN_DEBUG "hashfs: called hashfs_kill_superblock\n");
+    printk(KERN_DEBUG "hashfs_kill_superblock\n");
     kill_block_super(sb);
 }
 
 void hashfs_put_super(struct super_block *sb) {
-    printk(KERN_DEBUG "hashfs: called hashfs_put_super\n");
+    printk(KERN_DEBUG "hashfs_put_super\n");
     return;
 }
 
 void hashfs_save_sb(struct super_block *sb) {
-    printk(KERN_DEBUG "hashfs: called hashfs_save_sb\n");
+    printk(KERN_DEBUG "hashfs_save_sb\n");
 }

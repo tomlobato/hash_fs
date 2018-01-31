@@ -153,16 +153,30 @@ void zerofy_bitmap(int dev_fd, struct hashfs_superblock *sb){
 // Main
 
 void print_setup(char *dev_path, struct hashfs_superblock *sb, struct devinfo *dev_info, struct sb_settings *settings) {    
-    printf("disk size\t%.2lf GB\n", (double)dev_info->size / pow(2, 30));
-    printf("inode count\t%lu\n", sb->inode_count);
-    printf("block size\t%d Bytes\n", dev_info->blocksize);
-    printf("max fname len\t%ld\n", (long)pow(2, 8 * sizeof(filename_size)));
-    printf("max file size\t%.2lf TB\n", sb->max_file_size / pow(2, 40));
-    printf("superblk offset\t%lu Bytes\n", sb->superblock_offset_byte);
-    printf("superblk size\t%lu Bytes\n", sizeof(struct hashfs_superblock));
-    printf("bitmap size\t%.2lf MB\n", (double)sb->bitmap_size / pow(2, 20));
-    printf("hash size\t%.2lf MB\n", (double)sb->hash_size / pow(2, 20));
-    printf("inode tbl size\t%.2lf MB\n", (double)sb->inodes_size / pow(2, 20));
+    printf("disk size\t%.2lf GB\n", 
+        (double)dev_info->size / pow(2, 30));
+    printf("block size\t%d Bytes\n\n", 
+        dev_info->blocksize);
+
+    printf("inode count\t%lu\n", 
+        sb->inode_count);
+    printf("inode size\t%lu Bytes\n\n", 
+        sizeof(struct hashfs_inode));
+
+    printf("max fname len\t%ld\n", 
+        (long)pow(2, 8 * sizeof(filename_size)));
+    printf("max file size\t%.2lf TB\n\n", 
+        sb->max_file_size / pow(2, 40));
+
+    printf("superblk size\t%lu Bytes\n", 
+        sizeof(struct hashfs_superblock));
+    printf("bitmap size\t%.2lf MB\n", 
+        (double)sb->bitmap_size / pow(2, 20));
+    printf("hash size\t%.2lf MB\n", 
+        (double)sb->hash_size / pow(2, 20));
+    printf("inode tbl size\t%.2lf MB\n\n", 
+        (double)sb->inodes_size / pow(2, 20));
+
     printf("metadata size\t%.2lf MB (%.2lf%%)\n",
         sb->data_offset_blk * sb->blocksize / pow(2, 20),
         100.0 * sb->data_offset_blk * sb->blocksize / dev_info->size);
@@ -184,11 +198,11 @@ void mkfs(char *dev_path){
     struct hashfs_superblock *sb;
     int dev_fd;
 
-    printf("HashFS version %s\n\n", HASHFS_VERSION_NAME);
+    printf("HashFS version %s\n", HASHFS_VERSION_NAME);
 
     // Calculating metadata
 
-    printf("Calculating metadata for %s...\n", dev_path);
+    printf("Calculating metadata for %s...\n\n", dev_path);
     sb = mkfs_calloc(1, sizeof(struct hashfs_superblock));
     calc_metadata(dev_path, sb);
 
