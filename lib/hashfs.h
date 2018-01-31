@@ -12,7 +12,7 @@ static const uint64_t HASHFS_SUPERBLOCK_BLOCK_NO = 0;
 struct hashfs_superblock {
     uint64_t version;
     uint64_t magic;
-    uint16_t blocksize;
+    uint64_t blocksize;
     char uuid[36];
 
     uint64_t superblock_offset_byte;
@@ -33,8 +33,10 @@ struct hashfs_superblock {
     uint64_t hash_len;          // number of slots in the hash
     uint64_t hash_slot_size;    // size in bytes of the hash slot
     uint64_t max_file_size;     // in bytes
-    uint64_t next_inode;
-    uint64_t next_data;
+
+    uint64_t next_inode_byte; // next byte available inside inode area
+    uint64_t next_data_blk;   // next block available inside data area  
+    uint64_t next_ino;        // next inode number available
 };
 
 typedef uint8_t filename_size;
@@ -49,7 +51,6 @@ struct hashfs_inode {
 	uint16_t i_gid;		/* Low 16 bits of Group Id */
 	uint16_t i_links_count;	/* Links count */
 	uint32_t i_flags;	/* File flags */
-
     uint64_t ino;
     uint32_t block; // max disk size: 2**32 * blocksize (16 TB for 4K blocks)
     file_size size;  // max file size: 2**32 * blocksize (16 TB for 4K blocks)

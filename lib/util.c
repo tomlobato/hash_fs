@@ -56,6 +56,13 @@ char *mk_uuid(){
     return (char *)uuid;
 }
 
+uint64_t divceil(uint64_t x, uint64_t y){
+    uint64_t z;
+    z = x / y;
+    if (x % y) z++;
+    return z;
+}
+
 // File
 
 long long get_num_from_file(char *path) {

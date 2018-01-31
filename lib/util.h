@@ -32,4 +32,4 @@ unsigned int hash(char *str);
 struct stat *mkfs_stat(char *path);
 void zerofy(int fd, off_t offset, size_t count, int buf_len);
 int open_dev(char *dev_path);
-
+uint64_t divceil(uint64_t x, uint64_t y);

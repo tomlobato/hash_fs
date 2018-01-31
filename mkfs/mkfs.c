@@ -75,46 +75,57 @@ int get_hash_slot_size(uint64_t inode_count){
     );
 }
 
+int get_avg_full_inode_size(){
+    return sizeof(struct hashfs_inode) +
+           sizeof(filename_size) / 4 ;
+}
+
 void setup_sb(struct hashfs_superblock *sb, struct devinfo *dev_info, struct sb_settings *settings){
     sb->version                 = HASHFS_VERSION;
     sb->magic                   = HASHFS_MAGIC;
-    sb->superblock_offset_byte  = HASHFS_SB_OFFSET;
+    sb->next_data_blk           = 0;
+    sb->next_inode_byte         = 0;
+    sb->next_ino                = HASHFS_ROOTDIR_INODE_NO + 1;
     memcpy(sb->uuid, mk_uuid(), 36);
 
     // From disk info
     sb->blocksize = dev_info->blocksize;
     sb->inode_count = get_inode_count(dev_info->block_count);
-
-    //// Derived ////
-
+    sb->max_file_size = sb->blocksize * pow(2, 8 * sizeof(file_size));
     sb->hash_len = next_prime(sb->inode_count * HASHFS_HASH_MODULUS_FACTOR);
+
+    //
+    // Disk Layout
+    // 
+
+    // superblock
+    sb->superblock_offset_byte  = HASHFS_SB_OFFSET;
 
     // bitmap
     sb->bitmap_offset_blk = HASHFS_BITMAP_OFFSET_BLK;
-    sb->bitmap_size = sb->hash_len / 8 + 1; // Sum 1 because sb->hash_len is prime, and its 
-                                            // division is not exact.
-
+    sb->bitmap_size = divceil(sb->hash_len, 8);
+    
     // hash
-    sb->hash_offset_blk = sb->bitmap_offset_blk + sb->bitmap_size / sb->blocksize;
-    if (sb->bitmap_size % sb->blocksize) sb->hash_offset_blk++;
+    sb->hash_offset_blk = 
+        sb->bitmap_offset_blk + 
+        divceil(sb->bitmap_size, sb->blocksize);
 
     sb->hash_slot_size = get_hash_slot_size(sb->inode_count);
     sb->hash_size = sb->hash_len * sb->hash_slot_size;
 
     // inodes
-    sb->inodes_offset_blk = sb->hash_offset_blk + sb->hash_size / sb->blocksize;
-    if (sb->hash_size / sb->blocksize) sb->inodes_offset_blk++;
+    sb->inodes_offset_blk = 
+        sb->hash_offset_blk + 
+        divceil(sb->hash_size, sb->blocksize);
 
-    sb->inodes_size = sb->hash_size;
+    sb->inodes_size = sb->inode_count * get_avg_full_inode_size();
 
     // data
-    sb->data_offset_blk = sb->inodes_offset_blk + sb->inodes_size / sb->blocksize;
-    if (sb->inodes_size / sb->blocksize) sb->data_offset_blk++;
-    sb->data_size = dev_info->size - sb->data_offset_blk * sb->blocksize;
+    sb->data_offset_blk = 
+        sb->inodes_offset_blk + 
+        divceil(sb->inodes_size, sb->blocksize);
 
-    // Init
-    sb->next_inode = 0;
-    sb->next_data = 0;
+    sb->data_size = dev_info->size - sb->data_offset_blk * sb->blocksize;
 }
 
 void write_sb(int dev_fd, struct hashfs_superblock *sb){
@@ -151,7 +162,7 @@ void print_setup(char *dev_path, struct hashfs_superblock *sb, struct devinfo *d
     printf("inode count\t%lu\n", sb->inode_count);
     printf("block size\t%d Bytes\n", dev_info->blocksize);
     printf("max fname len\t%ld\n", (long)pow(2, 8 * sizeof(filename_size)));
-    printf("max file size\t%.2lf TB\n", sb->blocksize * pow(2, 8 * sizeof(file_size)) / pow(2, 40));
+    printf("max file size\t%.2lf TB\n", sb->max_file_size / pow(2, 40));
     printf("superblk offset\t%lu Bytes\n", sb->superblock_offset_byte);
     printf("superblk size\t%lu Bytes\n", sizeof(struct hashfs_superblock));
     printf("bitmap size\t%.2lf MB\n", (double)sb->bitmap_size / pow(2, 20));
