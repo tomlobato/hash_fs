@@ -77,7 +77,7 @@ int get_hash_slot_size(uint64_t inode_count){
 
 int get_avg_full_inode_size(){
     return sizeof(struct hashfs_inode) +
-           sizeof(filename_size) / 4 ;
+           sizeof(filename_size) / 4; // TODO: Elaborate this criteria 
 }
 
 void setup_sb(struct hashfs_superblock *sb, struct devinfo *dev_info, struct sb_settings *settings){
@@ -106,25 +106,20 @@ void setup_sb(struct hashfs_superblock *sb, struct devinfo *dev_info, struct sb_
     sb->bitmap_size = divceil(sb->hash_len, 8);
     
     // hash
-    sb->hash_offset_blk = 
-        sb->bitmap_offset_blk + 
-        divceil(sb->bitmap_size, sb->blocksize);
+    sb->hash_offset_blk = sb->bitmap_offset_blk + 
+                          divceil(sb->bitmap_size, sb->blocksize);
 
     sb->hash_slot_size = get_hash_slot_size(sb->inode_count);
     sb->hash_size = sb->hash_len * sb->hash_slot_size;
 
     // inodes
-    sb->inodes_offset_blk = 
-        sb->hash_offset_blk + 
-        divceil(sb->hash_size, sb->blocksize);
-
+    sb->inodes_offset_blk = sb->hash_offset_blk + 
+                            divceil(sb->hash_size, sb->blocksize);
     sb->inodes_size = sb->inode_count * get_avg_full_inode_size();
 
     // data
-    sb->data_offset_blk = 
-        sb->inodes_offset_blk + 
-        divceil(sb->inodes_size, sb->blocksize);
-
+    sb->data_offset_blk = sb->inodes_offset_blk + 
+                          divceil(sb->inodes_size, sb->blocksize);
     sb->data_size = dev_info->size - sb->data_offset_blk * sb->blocksize;
 }
 

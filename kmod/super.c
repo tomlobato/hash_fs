@@ -22,7 +22,7 @@ static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
     hashfs_sb = (struct hashfs_superblock *)bh->b_data;
 
     printk(KERN_DEBUG "hashfs_fill_super: uuid=%s\n", hashfs_sb->uuid);
-    printk(KERN_DEBUG "hashfs_fill_super: blocksize=%d\n", hashfs_sb->blocksize);
+    printk(KERN_DEBUG "hashfs_fill_super: blocksize=%llu\n", hashfs_sb->blocksize);
 
     if (unlikely(hashfs_sb->magic != HASHFS_MAGIC)) {
         printk(KERN_ERR
