@@ -6,8 +6,7 @@ static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
     struct hashfs_inode *root_hashfs_inode;
     struct buffer_head *bh;
     struct hashfs_superblock *hashfs_sb;
-    int ret = 0;
-    
+    int ret = 0;    
     void *ptr;
 
     printk(KERN_DEBUG "hashfs_fill_super: data=%s\n", (char *)data);

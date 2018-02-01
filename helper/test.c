@@ -5,44 +5,72 @@
 #include <unistd.h>
 #include <math.h>
 #include <time.h>
+#include "../lib/xxhash.h"
+#include <stdint.h>
+#include <string.h>
 
 int main(int argc, char **argv){
-    int i;
+    uint32_t x = 1234;
+    void *ptr;
+    ptr = &x;
+    // printf("2\n");
 
-    void *ptr = malloc(10);
-    printf("%lu\n", sizeof(ptr));
-    printf("%p\n", ptr);
-    for(i = 0; i <= 10; i++) {
-        ptr++;
-        printf("%p\n", ptr);
-    }
+    uint64_t *X = calloc(1, sizeof(uint64_t));
+    // printf("3\n");
 
-    char *ptr2 = malloc(10);
-    printf("%lu\n", sizeof(ptr2));
-    printf("%p\n", ptr2);
-    for(i = 0; i <= 10; i++) {
-        ptr2++;
-        printf("%p\n", ptr2);
-    }
+    memcpy(X, ptr, sizeof(uint32_t));
+    // printf("4\n");
 
-    unsigned char *ptr3 = malloc(10);
-    printf("%lu\n", sizeof(ptr3));
-    printf("%p\n", ptr3);
-    for(i = 0; i <= 10; i++) {
-        ptr3++;
-        printf("%p\n", ptr3);
-    }
+    printf("%d\n", x);
+    // printf("5\n");
 
-    long long int *ptr4 = malloc(10);
-    printf("%lu\n", sizeof(ptr4));
-    printf("%p\n", ptr4);
-    for(i = 0; i <= 10; i++) {
-        ptr4++;
-        printf("%p\n", ptr4);
-    }
+    printf("%llu\n", *X);
+    // printf("6\n");
+
+    free(X);
+    // printf("7\n");
 
     return 0;
 }
+
+    // printf("-%d-\n", XXH32("xxxyyy1233", 10, 0));
+
+    // int i;
+
+    // void *ptr = malloc(10);
+    // printf("%lu\n", sizeof(ptr));
+    // printf("%p\n", ptr);
+    // for(i = 0; i <= 10; i++) {
+    //     ptr++;
+    //     printf("%p\n", ptr);
+    // }
+
+    // char *ptr2 = malloc(10);
+    // printf("%lu\n", sizeof(ptr2));
+    // printf("%p\n", ptr2);
+    // for(i = 0; i <= 10; i++) {
+    //     ptr2++;
+    //     printf("%p\n", ptr2);
+    // }
+
+    // unsigned char *ptr3 = malloc(10);
+    // printf("%lu\n", sizeof(ptr3));
+    // printf("%p\n", ptr3);
+    // for(i = 0; i <= 10; i++) {
+    //     ptr3++;
+    //     printf("%p\n", ptr3);
+    // }
+
+    // long long int *ptr4 = malloc(10);
+    // printf("%lu\n", sizeof(ptr4));
+    // printf("%p\n", ptr4);
+    // for(i = 0; i <= 10; i++) {
+    //     ptr4++;
+    //     printf("%p\n", ptr4);
+    // }
+
+//     return 0;
+// }
 
 
 // #include "../src/hash_function.h"

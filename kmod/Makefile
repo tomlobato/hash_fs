@@ -1,5 +1,6 @@
 obj-m += hashfs.o
-hashfs-objs := k_hashfs.o super.o inode.o dir.o file.o util.o
+hashfs-objs := k_hashfs.o super.o inode.o dir.o file.o util.o k_xxhash.o
+CFLAGS_k_xxhash.o := -DDEBUG
 CFLAGS_k_hashfs.o := -DDEBUG
 CFLAGS_super.o := -DDEBUG
 CFLAGS_inode.o := -DDEBUG

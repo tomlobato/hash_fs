@@ -1,7 +1,4 @@
 
-
-
-
 #include "mkfs.h"
 
 // Params
@@ -166,6 +163,11 @@ void print_setup(char *dev_path, struct hashfs_superblock *sb, struct devinfo *d
         sb->inode_count);
     printf("inode size\t%lu Bytes\n\n", 
         sizeof(struct hashfs_inode));
+
+    printf("hash length\t%lu\n", 
+        sb->hash_len);
+    printf("hash slot size\t%lu Bytes\n\n", 
+        sb->hash_slot_size);
 
     printf("max fname len\t%ld\n", 
         (long)pow(2, 8 * sizeof(filename_size)));
