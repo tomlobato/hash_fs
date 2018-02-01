@@ -60,3 +60,9 @@ dkms.conf
 .vscode/
 /mkfs/mkfs.hashfs
 /fsck/fsck.hashfs
+/debugfs/debugfs.hashfs
+/lib/test
+._*
+tempCodeRunnerFile
+a.out
+

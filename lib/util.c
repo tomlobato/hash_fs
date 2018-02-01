@@ -161,46 +161,56 @@ int open_dev(char *dev_path, int flags) {
     return fd;
 }
 
+char *fmt(const char *format, ...){
+    va_list args;
+    char *out;
+    int size, would_write;
+
+    size = pow(2, 12);
+    out = malloc(sizeof(char) * size);
+    
+    va_start (args, format);
+    would_write = vsnprintf(out, size, format, args);
+    va_end (args);
+
+    if (would_write >= size) {
+        printf("Warning: would_write=%d size=%d for output='%s'\n", would_write, size, out);
+    }
+
+    return out;
+}
+
 void print_error(const char *func, int status, int errnum, const char *filename, 
                         unsigned int linenum, const char *format, ...) {
     va_list args;
     char *msg = NULL;
     int size = 0;
-    char *func_format;
-    char *err_msg;
+    char *bin;
+    char *err_msg = "";
+    char _err_msg[128];
 
-    // Prepend __FUNC__ to the original string
-    func_format = malloc(sizeof(char) * 
-        (strlen(func) + strlen(format) + 3)); // 3 for :, space and \0
-    sprintf(func_format, "%s: %s", func, format);
-
-    // Determine size
     va_start (args, format);
-    size = vsnprintf(msg, size, func_format, args);
+    size = vsnprintf(msg, size, format, args) + 1;
     va_end (args);
-    size++; // \0
-
-    // Write to msg
     msg = malloc(sizeof(char) * size);
-    vsnprintf(msg, size, func_format, args);
+    vsnprintf(msg, size, format, args);
 
     if (errnum) {
-        err_msg = malloc(sizeof(char) * 64);
-        strerror_r(errnum, err_msg, 64);
-    } else {
-        err_msg = "";
+        strerror_r(errnum, _err_msg, sizeof(_err_msg));
+        err_msg = fmt(": %s (errno %d)", _err_msg, errnum);
     }
 
     fflush(stdout);
 
-    if (saved_args->bin_name != NULL) {
-        fprintf(stderr, "%s: ", saved_args->bin_name);
-    }
-    fprintf(stderr, "%s:%d %s\n%s\n", filename, linenum, msg, err_msg);
+    bin = saved_args->bin_name;
+    if (bin == NULL)
+        bin = "";
 
-    if (errnum) free(err_msg);
+    fprintf(stderr, "Error in %s (%s:%s:%d): " COLOR_RED "%s%s\n" COLOR_RESET, 
+        bin, filename, func, linenum, msg, err_msg);
+
     free(msg);
-    free(func_format);
+    free(err_msg);
 
     if (status) {
         exit(status);
@@ -209,13 +219,9 @@ void print_error(const char *func, int status, int errnum, const char *filename,
 
 // String
 
-// void p(char *s){
-//     printf("%s\n", s);
-// }
-
-// void p(char s){
-//     printf("%c\n", s);
-// }
+void ps(char *s){
+    printf("%s\n", s);
+}
 
 void p(long long i){
     printf("%llu\n", i);
@@ -250,36 +256,22 @@ unsigned int hash(char *str)
 }
 
 void save_args(int argc, char **argv) {
-    char *bin_path, *bin_path_cpy;
+    char *bin_path;
 
     bin_path = get_bin_path(argv[0]);
-    bin_path_cpy = strdup(bin_path);
-
     saved_args = calloc(1, sizeof(struct call_args));
 
     saved_args->argc = argc;
     saved_args->argv = argv;
     saved_args->bin_path = bin_path;
-    saved_args->bin_name = basename(bin_path_cpy);
+    saved_args->bin_name = basename(strdup(bin_path));
 }
 
 char *get_bin_path(char *argv0) {
-    int size = 0;
-    char *cwd, *bin_path;
-
-    if (argv0[0] == '/') {
-        bin_path = malloc(sizeof(char) * (strlen(argv0) + 1));
-        sprintf(bin_path, "%s", argv0);
-    } else {
-        cwd = getcwd(NULL, 256);
-        size = snprintf(NULL, 0, "%s/%s", cwd, argv0); 
-        size++;
-        bin_path = malloc(sizeof(char) * size);
-        snprintf(bin_path, size, "%s/%s", cwd, argv0);
-        free(cwd);
-    }
-
-    return bin_path;
+    if (argv0[0] == '/')
+        return fmt("%s", argv0);
+    else
+        return fmt("%s/%s", getcwd(NULL, 256), argv0);
 }
 
 // FS
