@@ -103,6 +103,9 @@ int hashfs_mkdir(struct inode *dir, struct dentry *dentry,
 struct dentry *hashfs_lookup(struct inode *dir,
                               struct dentry *child_dentry,
                               unsigned int flags) {
-    printk(KERN_DEBUG "hashfs_lookup\n");
+    printk(KERN_DEBUG "hashfs_lookup\n", (char *)dir);
+    printk(KERN_DEBUG "hashfs_lookup\n", child_dentry->d_name->name);
+    printk(KERN_DEBUG "hashfs_lookup %u\n", flags);
+    
     return NULL;
 }
