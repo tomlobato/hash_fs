@@ -117,6 +117,8 @@ struct dentry *hashfs_lookup(struct inode *dir,
     uint64_t key_slot;
     uint64_t bitmap_offset_byte;
     uint64_t key_offset_byte;
+    struct inode *inode;
+    struct hashfs_inode *hashfs_inode;
 
     hashfs_sb = dir->i_sb->s_fs_info;
 
@@ -157,8 +159,44 @@ struct dentry *hashfs_lookup(struct inode *dir,
         memcpy(&inode_offset_byte, ptr, hashfs_sb->hash_slot_size);
         printk(KERN_DEBUG "inode_offset_byte=%llu\n", inode_offset_byte);
     } else {
-        return NULL;
+        // return NULL;
     }
 
-    return NULL;
+    
+    hashfs_inode = kmem_cache_alloc(hashfs_inode_cache, GFP_KERNEL);
+    hashfs_inode->ino = 2;
+    hashfs_inode->block = 0;
+    hashfs_inode->size = 0;
+    hashfs_inode->name_size = 3;
+    hashfs_inode->name = NULL;
+    hashfs_inode->next = 0;
+
+    inode = new_inode(dir->i_sb);
+    if (!inode) {
+        printk(KERN_ERR "Cannot create new inode. No memory.\n");
+        return NULL; 
+    }
+    // inode->i_sb = dir->i_sb;
+    inode->i_ino = 2;
+    inode->i_op = &hashfs_inode_ops;
+    inode->i_atime = inode->i_mtime 
+                   = inode->i_ctime
+                   = CURRENT_TIME;
+    inode->i_private = hashfs_inode;    
+    
+    if (hashfs_inode->ino == HASHFS_ROOTDIR_INODE_NO) { 
+        inode->i_fop = &hashfs_dir_operations;
+        inode->i_mode = HASHFS_DEFAULT_MODE_DIR;
+        printk(KERN_DEBUG "hashfs_fill_inode: DIR %o\n", inode->i_mode);
+    } else {
+        inode->i_fop = &hashfs_file_operations;
+        inode->i_mode = HASHFS_DEFAULT_MODE_FILE;
+        printk(KERN_DEBUG "hashfs_fill_inode: FILE %o\n", inode->i_mode);
+    }
+    // inode->i_count++;
+
+    d_add(child_dentry, inode);
+
+
+    return child_dentry;
 }
