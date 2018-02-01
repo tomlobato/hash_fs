@@ -7,7 +7,7 @@ void mkfile(char *name){
 
 void add(char *name, char *path) {
     // int fd = open(path, O_RDONLY);
-    // char *buf = mkfs_malloc(1000000);
+    // char *buf = hashfs_malloc(1000000);
     // int len = read(fd, buf, 1000000);
     // mkfile(name);
     char *file_data = "my great file my friend!";
@@ -41,7 +41,7 @@ void add(char *name, char *path) {
         }
 
         // mk inode
-        struct hashfs_inode *inode = mkfs_calloc(1, sizeof(struct hashfs_inode));
+        struct hashfs_inode *inode = hashfs_calloc(1, sizeof(struct hashfs_inode));
         inode->block = sb->next_inode;
         inode->size = strlen(file_data) / sb->blocksize + (strlen(file_data) % sb->blocksize ? 1 : 0);
         inode->name_size = strlen(name);

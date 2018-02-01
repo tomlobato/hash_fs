@@ -5,11 +5,11 @@
 
 void check(char *dev_path){
     if (is_mounted(dev_path))
-        mkfs_error("device %s is already mounted. Aborting.", dev_path);
+        hashfs_error("device %s is already mounted. Aborting.", dev_path);
 
 #ifdef ALLOW_DEVICE
     if (strcmp(dev_path, ALLOW_DEVICE) != 0)
-        mkfs_error("device not allowed, must be %s", ALLOW_DEVICE);
+        hashfs_error("device not allowed, must be %s", ALLOW_DEVICE);
 #endif
 }
 
@@ -18,7 +18,7 @@ void check(char *dev_path){
 struct sb_settings *get_sb_settings(struct hashfs_superblock *sb){
     struct sb_settings *s;
 
-    s = mkfs_calloc(1, sizeof(struct sb_settings));
+    s = hashfs_calloc(1, sizeof(struct sb_settings));
 
     // TODO: read mkfs args
     
@@ -28,7 +28,7 @@ struct sb_settings *get_sb_settings(struct hashfs_superblock *sb){
 char *get_dev_dir(char *dev_file) {
     char *dev_name;
 
-    dev_name = mkfs_malloc(sizeof(char) * strlen(dev_file));
+    dev_name = hashfs_malloc(sizeof(char) * strlen(dev_file));
     dev_name = basename(dev_file);
 
     return mk_str("/sys/class/block/%s", dev_name);
@@ -42,7 +42,7 @@ void get_dev_info(struct hashfs_superblock *sb, char *dev_file){
     sb->sector_count = get_num_from_file(join_paths(dev_dir, "size"));
     sb->sector_size = get_num_from_file(join_paths(dev_dir, "queue/hw_sector_size"));
     sb->device_size = sb->sector_size * sb->sector_count;
-    sb->blocksize = mkfs_stat(dev_file)->st_blksize;
+    sb->blocksize = hashfs_stat(dev_file)->st_blksize;
     sb->block_count = sb->device_size / sb->blocksize;
 }
 
@@ -118,11 +118,11 @@ void write_sb(int dev_fd, struct hashfs_superblock *sb){
            0);
 
     if (lseek(dev_fd, sb->superblock_offset_byte, SEEK_SET) == -1)
-        mkfs_error("write_sb: error lseek`ing disk");
+        hashfs_error("write_sb: error lseek`ing disk");
 
     int w = write(dev_fd, sb, sizeof(struct hashfs_superblock));
     if (w != sizeof(struct hashfs_superblock))
-        mkfs_error("write_sb: error writing");
+        hashfs_error("write_sb: error writing");
 }
 
 // Bitmap
@@ -156,7 +156,7 @@ void mkfs(char *dev_path){
     // Calculating metadata
 
     printf("Calculating metadata for %s...\n\n", dev_path);
-    sb = mkfs_calloc(1, sizeof(struct hashfs_superblock));
+    sb = hashfs_calloc(1, sizeof(struct hashfs_superblock));
     calc_metadata(dev_path, sb);
 
     // Write to disk
@@ -172,14 +172,16 @@ void mkfs(char *dev_path){
     zerofy_bitmap(dev_fd, sb);
     
     if(close(dev_fd) == -1)
-        mkfs_error("Error closing device %s.", dev_path);
+        hashfs_error("Error closing device %s.", dev_path);
 
     printf("\nHashFs created successfully.\n\n");
 }
 
 int main(int argc, char **argv) {
+    save_args(argc, argv);
+
     if (argc < 2)
-        mkfs_error("usage: mkfs /dev/<device name>\n");
+        hashfs_error("usage: mkfs /dev/<device name>\n");
 
     check(argv[1]);
     mkfs(argv[1]);

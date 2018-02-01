@@ -1,25 +1,27 @@
 #include "util.h"
 
+struct call_args *saved_args;
+
 // Mem
 
-void *_mkfs_malloc(char *file, long line, size_t size){
+void *_hashfs_malloc(char *file, long line, size_t size){
     void *ptr;  
 
     ptr = malloc(size);
 
     if (ptr == NULL)
-        mkfs_error("Unable to allocate memory (malloc) at %s:%ld", file, line);
+        hashfs_error("Unable to allocate memory (malloc) at %s:%ld", file, line);
 
     return ptr;
 }
 
-void *_mkfs_calloc(char *file, long line, size_t nmemb, size_t size){
+void *_hashfs_calloc(char *file, long line, size_t nmemb, size_t size){
     void *ptr;  
 
     ptr = calloc(nmemb, size);
 
     if (ptr == NULL)
-        mkfs_error("Unable to allocate memory (calloc) at %s:%ld", file, line);
+        hashfs_error("Unable to allocate memory (calloc) at %s:%ld", file, line);
 
     return ptr;
 }
@@ -51,7 +53,7 @@ unsigned long long next_prime(unsigned long long i){
 char *mk_uuid(){
     uuid_t uuid_bin;
     uuid_generate(uuid_bin);
-    char *uuid = mkfs_malloc(sizeof(char) * 36);
+    char *uuid = hashfs_malloc(sizeof(char) * 36);
     uuid_unparse(uuid_bin, uuid);
     return (char *)uuid;
 }
@@ -71,16 +73,16 @@ long long get_num_from_file(char *path) {
     char *content;
 
     if (path == NULL)
-        mkfs_error("path1 cannot be NULL. Aborting.");
+        hashfs_error("path1 cannot be NULL. Aborting.");
 
 
     if ((file = fopen(path, "r")) == NULL)
-        mkfs_error("Error opening %s. Aborting.", path);
+        hashfs_error("Error opening %s. Aborting.", path);
 
-    content = mkfs_malloc( sizeof(char) * max_chars );
+    content = hashfs_malloc( sizeof(char) * max_chars );
 
     if (fgets(content, max_chars, file) == NULL)
-        mkfs_error("Error reading file %s", path);
+        hashfs_error("Error reading file %s", path);
 
     return atoll(content);
 }
@@ -93,9 +95,9 @@ int is_mounted(char *dev_path) {
         is_mounted = 0;
 
     if ((file = fopen("/proc/mounts", "r")) == NULL)
-        mkfs_error("Error opening /proc/mounts. Aborting.");
+        hashfs_error("Error opening /proc/mounts. Aborting.");
 
-    line = mkfs_malloc(sizeof(char) * max_chars);
+    line = hashfs_malloc(sizeof(char) * max_chars);
 
     while(fgets(line, max_chars, file) != NULL) {
         line[max_chars - 1] = '\0';
@@ -116,13 +118,13 @@ ret:
     }
 }
 
-struct stat *mkfs_stat(char *path){
+struct stat *hashfs_stat(char *path){
     struct stat *buf;
     
-    buf = mkfs_malloc(sizeof(struct stat));
+    buf = hashfs_malloc(sizeof(struct stat));
 
     if (stat(path, buf) == -1)
-        mkfs_error("Error reading info about %s\n", path);
+        hashfs_error("Error reading info about %s\n", path);
 
     return buf;
 }
@@ -134,10 +136,10 @@ void zerofy(int fd, off_t offset, size_t count, int buf_len){
     void *buf;
 
     if (lseek(fd, offset, SEEK_SET) == -1)
-        mkfs_error("zerofy: error lseek`ing disk");
+        hashfs_error("zerofy: error lseek`ing disk");
 
     if (!buf_len) buf_len = (int)count;
-    buf = mkfs_calloc(1, buf_len);
+    buf = hashfs_calloc(1, buf_len);
 
     rest = count;
 
@@ -145,7 +147,7 @@ void zerofy(int fd, off_t offset, size_t count, int buf_len){
         write_len = rest >= buf_len ? buf_len : rest;
         written = write(fd, buf, write_len);
         if (written == -1)
-            mkfs_error("zerofy: error writing to disk");
+            hashfs_error("zerofy: error writing to disk");
         rest -= written;
     }
 }
@@ -154,17 +156,55 @@ int open_dev(char *dev_path, int flags) {
     int fd = open(dev_path, flags);
 
     if (fd == -1)
-        mkfs_error("Error while opening device %s. Aborting.", dev_path);
+        hashfs_error("Error while opening device %s. Aborting.", dev_path);
 
     return fd;
 }
 
-void _error_at_line(const char *func, int status, int errnum, const char *filename, 
+void print_error(const char *func, int status, int errnum, const char *filename, 
                         unsigned int linenum, const char *format, ...) {
     va_list args;
+    char *msg = NULL;
+    int size = 0;
+    char *func_format;
+    char *err_msg;
+
+    // Prepend __FUNC__ to the original string
+    func_format = malloc(sizeof(char) * 
+        (strlen(func) + strlen(format) + 3)); // 3 for :, space and \0
+    sprintf(func_format, "%s: %s", func, format);
+
+    // Determine size
     va_start (args, format);
-    error_at_line(status, errnum, filename, linenum, format, args);
+    size = vsnprintf(msg, size, func_format, args);
     va_end (args);
+    size++; // \0
+
+    // Write to msg
+    msg = malloc(sizeof(char) * size);
+    vsnprintf(msg, size, func_format, args);
+
+    if (errnum) {
+        err_msg = malloc(sizeof(char) * 64);
+        strerror_r(errnum, err_msg, 64);
+    } else {
+        err_msg = "";
+    }
+
+    fflush(stdout);
+
+    if (saved_args->bin_name != NULL) {
+        fprintf(stderr, "%s: ", saved_args->bin_name);
+    }
+    fprintf(stderr, "%s:%d %s\n%s\n", filename, linenum, msg, err_msg);
+
+    if (errnum) free(err_msg);
+    free(msg);
+    free(func_format);
+
+    if (status) {
+        exit(status);
+    }
 }
 
 // String
@@ -184,10 +224,10 @@ void p(long long i){
 char *mk_str(char *fmt, char *str){
     char *out;
 
-    out = mkfs_malloc(sizeof(char) * (strlen(fmt) + strlen(str)));
+    out = hashfs_malloc(sizeof(char) * (strlen(fmt) + strlen(str)));
 
     if (sprintf(out, fmt, str) < 0)
-        mkfs_error("Error mk_str`ing string\n");
+        hashfs_error("Error mk_str`ing string\n");
 
     return out;
 }
@@ -196,9 +236,9 @@ char *join_paths(char *p1, char *p2) {
     char *path;
     
     if (p1 == NULL || p2 == NULL)
-        mkfs_error("paths cannot be NULL. Aborting.");
+        hashfs_error("paths cannot be NULL. Aborting.");
 
-    path = mkfs_malloc(sizeof(char) * (strlen(p1) + strlen(p2)) + 2);
+    path = hashfs_malloc(sizeof(char) * (strlen(p1) + strlen(p2)) + 2);
     sprintf(path, "%s/%s", p1, p2);
 
     return path;
@@ -207,6 +247,39 @@ char *join_paths(char *p1, char *p2) {
 unsigned int hash(char *str)
 {
     return XXH32(str, strlen(str), 0);
+}
+
+void save_args(int argc, char **argv) {
+    char *bin_path, *bin_path_cpy;
+
+    bin_path = get_bin_path(argv[0]);
+    bin_path_cpy = strdup(bin_path);
+
+    saved_args = calloc(1, sizeof(struct call_args));
+
+    saved_args->argc = argc;
+    saved_args->argv = argv;
+    saved_args->bin_path = bin_path;
+    saved_args->bin_name = basename(bin_path_cpy);
+}
+
+char *get_bin_path(char *argv0) {
+    int size = 0;
+    char *cwd, *bin_path;
+
+    if (argv0[0] == '/') {
+        bin_path = malloc(sizeof(char) * (strlen(argv0) + 1));
+        sprintf(bin_path, "%s", argv0);
+    } else {
+        cwd = getcwd(NULL, 256);
+        size = snprintf(NULL, 0, "%s/%s", cwd, argv0); 
+        size++;
+        bin_path = malloc(sizeof(char) * size);
+        snprintf(bin_path, size, "%s/%s", cwd, argv0);
+        free(cwd);
+    }
+
+    return bin_path;
 }
 
 // FS
@@ -218,17 +291,17 @@ struct hashfs_superblock *get_superblock(char *dev_file){
 
     sb_len = sizeof(struct hashfs_superblock);
 
-    sb = mkfs_calloc(1, sb_len);
+    sb = hashfs_calloc(1, sb_len);
     fd = open_dev(dev_file, O_RDONLY);
 
     if (lseek(fd, sb->superblock_offset_byte, SEEK_SET) == -1)
-        mkfs_error("get_superblock: error lseek`ing disk");
+        hashfs_error("get_superblock: error lseek`ing disk");
 
     if (read(fd, sb, sb_len) != sb_len)
-        mkfs_error("get_superblock: error reading disk");
+        hashfs_error("get_superblock: error reading disk");
 
     if(close(fd) == -1)
-        mkfs_error("get_superblock: Error closing device %s.", dev_file);
+        hashfs_error("get_superblock: Error closing device %s.", dev_file);
 
     return sb;
 }

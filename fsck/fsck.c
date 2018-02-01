@@ -8,8 +8,10 @@ void fsck(char *dev_path){
 }
 
 int main(int argc, char **argv) {
+    save_args(argc, argv);
+
     if (argc < 2)
-        mkfs_error("usage: fsck /dev/<device name>\n");
+        hashfs_error("usage: fsck /dev/<device name>\n");
 
     check(argv[1]);
     fsck(argv[1]);
