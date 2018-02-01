@@ -41,12 +41,18 @@ int get_lines(char *fileName) {
     return 0;
 }
 
+void test_error(){
+  char *p = malloc(1);
+  read(44, p, 78);
+  hashfs_error("ixi %d", 111);
+}
+
 int main (int argc, char **argv) {
   int c;
 
   save_args(argc, argv);
 
-  while ((c = getopt (argc, argv, "h:up:n:s:")) != -1)
+  while ((c = getopt (argc, argv, "h:up:n:s:e")) != -1)
     switch (c)
       {
       case 'h':
@@ -60,9 +66,9 @@ int main (int argc, char **argv) {
         break;
       case 'n':
         printf("%llu\n", next_prime(atoll(optarg)));
-        char *p = malloc(1000);
-        read(44, p, 78);
-        hashfs_error("ixi %d", 111);
+        break;
+      case 'e':
+        test_error();
         break;
       case 's':
         print_superblock(get_superblock(optarg));
