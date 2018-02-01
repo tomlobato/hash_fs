@@ -150,8 +150,8 @@ void zerofy(int fd, off_t offset, size_t count, int buf_len){
     }
 }
 
-int open_dev(char *dev_path) {
-    int fd = open(dev_path, O_WRONLY);
+int open_dev(char *dev_path, int flags) {
+    int fd = open(dev_path, flags);
 
     if (fd == -1)
         mkfs_error("Error while opening device %s. Aborting.", dev_path);
@@ -159,7 +159,27 @@ int open_dev(char *dev_path) {
     return fd;
 }
 
+void _error_at_line(const char *func, int status, int errnum, const char *filename, 
+                        unsigned int linenum, const char *format, ...) {
+    va_list args;
+    va_start (args, format);
+    error_at_line(status, errnum, filename, linenum, format, args);
+    va_end (args);
+}
+
 // String
+
+// void p(char *s){
+//     printf("%s\n", s);
+// }
+
+// void p(char s){
+//     printf("%c\n", s);
+// }
+
+void p(long long i){
+    printf("%llu\n", i);
+}
 
 char *mk_str(char *fmt, char *str){
     char *out;
@@ -187,4 +207,63 @@ char *join_paths(char *p1, char *p2) {
 unsigned int hash(char *str)
 {
     return XXH32(str, strlen(str), 0);
+}
+
+// FS
+
+struct hashfs_superblock *get_superblock(char *dev_file){
+    struct hashfs_superblock *sb;
+    int fd;
+    int sb_len;
+
+    sb_len = sizeof(struct hashfs_superblock);
+
+    sb = mkfs_calloc(1, sb_len);
+    fd = open_dev(dev_file, O_RDONLY);
+
+    if (lseek(fd, sb->superblock_offset_byte, SEEK_SET) == -1)
+        mkfs_error("get_superblock: error lseek`ing disk");
+
+    if (read(fd, sb, sb_len) != sb_len)
+        mkfs_error("get_superblock: error reading disk");
+
+    if(close(fd) == -1)
+        mkfs_error("get_superblock: Error closing device %s.", dev_file);
+
+    return sb;
+}
+
+void print_superblock(struct hashfs_superblock *sb) {    
+    printf("disk size\t%.2lf GB\n", 
+        (double)sb->device_size / pow(2, 30));
+    printf("block size\t%lu Bytes\n\n", 
+        sb->blocksize);
+
+    printf("inode count\t%lu\n", 
+        sb->inode_count);
+    printf("inode size\t%lu Bytes\n\n", 
+        sizeof(struct hashfs_inode));
+
+    printf("hash length\t%lu\n", 
+        sb->hash_len);
+    printf("hash slot size\t%lu Bytes\n\n", 
+        sb->hash_slot_size);
+
+    printf("max fname len\t%ld\n", 
+        (long)pow(2, 8 * sizeof(filename_size)));
+    printf("max file size\t%.2lf TB\n\n", 
+        sb->max_file_size / pow(2, 40));
+
+    printf("superblk size\t%lu Bytes\n", 
+        sizeof(struct hashfs_superblock));
+    printf("bitmap size\t%.2lf MB\n", 
+        (double)sb->bitmap_size / pow(2, 20));
+    printf("hash size\t%.2lf MB\n", 
+        (double)sb->hash_size / pow(2, 20));
+    printf("inode tbl size\t%.2lf MB\n\n", 
+        (double)sb->inodes_size / pow(2, 20));
+
+    printf("metadata size\t%.2lf MB (%.2lf%%)\n",
+        sb->data_offset_blk * sb->blocksize / pow(2, 20),
+        100.0 * sb->data_offset_blk * sb->blocksize / sb->device_size);
 }

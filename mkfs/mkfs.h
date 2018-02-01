@@ -1,5 +1,4 @@
 #include "../lib/util.h"
-#include "../kmod/hashfs.h"
 
 #define IS_DEV
 
@@ -15,12 +14,5 @@
 struct sb_settings {
 };
 
-struct devinfo {
-    uint64_t sector_count;
-    uint16_t sector_size;
-    uint64_t block_count;
-    uint16_t blocksize;
-    uint64_t size;
-};
 
 

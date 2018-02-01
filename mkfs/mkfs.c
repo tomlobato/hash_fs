@@ -15,7 +15,7 @@ void check(char *dev_path){
 
 // Superblock
 
-struct sb_settings *get_sb_settings(struct devinfo *dev_info){
+struct sb_settings *get_sb_settings(struct hashfs_superblock *sb){
     struct sb_settings *s;
 
     s = mkfs_calloc(1, sizeof(struct sb_settings));
@@ -34,31 +34,16 @@ char *get_dev_dir(char *dev_file) {
     return mk_str("/sys/class/block/%s", dev_name);
 }
 
-struct devinfo *get_dev_info(char *dev_file){
-    struct devinfo *info;
+void get_dev_info(struct hashfs_superblock *sb, char *dev_file){
     char *dev_dir;
-    struct stat *dev_file_stat;
 
-    info = mkfs_calloc(1, sizeof(struct devinfo));
     dev_dir = get_dev_dir(dev_file);
 
-    // sector_num
-    info->sector_count = get_num_from_file(join_paths(dev_dir, "size"));
-
-    // sector_size
-    info->sector_size = get_num_from_file(join_paths(dev_dir, "queue/hw_sector_size"));
-
-    // size
-    info->size = info->sector_size * info->sector_count;
-
-    // block_size
-    dev_file_stat = mkfs_stat(dev_file);
-    info->blocksize = dev_file_stat->st_blksize;
-
-    // block_num
-    info->block_count = info->size / info->blocksize;
-
-    return info;
+    sb->sector_count = get_num_from_file(join_paths(dev_dir, "size"));
+    sb->sector_size = get_num_from_file(join_paths(dev_dir, "queue/hw_sector_size"));
+    sb->device_size = sb->sector_size * sb->sector_count;
+    sb->blocksize = mkfs_stat(dev_file)->st_blksize;
+    sb->block_count = sb->device_size / sb->blocksize;
 }
 
 uint64_t get_inode_count(uint64_t block_count){
@@ -81,17 +66,19 @@ int get_avg_full_inode_size(){
            sizeof(filename_size) / 4; // TODO: Elaborate this criteria 
 }
 
-void setup_sb(struct hashfs_superblock *sb, struct devinfo *dev_info, struct sb_settings *settings){
+void setup_sb(struct hashfs_superblock *sb, struct sb_settings *settings, char *dev_file){
+    get_dev_info(sb, dev_file);
+
     sb->version                 = HASHFS_VERSION;
     sb->magic                   = HASHFS_MAGIC;
     sb->next_data_blk           = 0;
     sb->next_inode_byte         = 0;
     sb->next_ino                = HASHFS_ROOTDIR_INODE_NO + 1;
+
     memcpy(sb->uuid, mk_uuid(), 36);
 
     // From disk info
-    sb->blocksize = dev_info->blocksize;
-    sb->inode_count = get_inode_count(dev_info->block_count);
+    sb->inode_count = get_inode_count(sb->block_count);
     sb->max_file_size = sb->blocksize * pow(2, 8 * sizeof(file_size));
     sb->hash_len = next_prime(sb->inode_count * HASHFS_HASH_MODULUS_FACTOR);
 
@@ -121,7 +108,7 @@ void setup_sb(struct hashfs_superblock *sb, struct devinfo *dev_info, struct sb_
     // data
     sb->data_offset_blk = sb->inodes_offset_blk + 
                           divceil(sb->inodes_size, sb->blocksize);
-    sb->data_size = dev_info->size - sb->data_offset_blk * sb->blocksize;
+    sb->data_size = sb->device_size - sb->data_offset_blk * sb->blocksize;
 }
 
 void write_sb(int dev_fd, struct hashfs_superblock *sb){
@@ -153,51 +140,11 @@ void zerofy_bitmap(int dev_fd, struct hashfs_superblock *sb){
 
 // Main
 
-void print_setup(char *dev_path, struct hashfs_superblock *sb, struct devinfo *dev_info, struct sb_settings *settings) {    
-    printf("disk size\t%.2lf GB\n", 
-        (double)dev_info->size / pow(2, 30));
-    printf("block size\t%d Bytes\n\n", 
-        dev_info->blocksize);
-
-    printf("inode count\t%lu\n", 
-        sb->inode_count);
-    printf("inode size\t%lu Bytes\n\n", 
-        sizeof(struct hashfs_inode));
-
-    printf("hash length\t%lu\n", 
-        sb->hash_len);
-    printf("hash slot size\t%lu Bytes\n\n", 
-        sb->hash_slot_size);
-
-    printf("max fname len\t%ld\n", 
-        (long)pow(2, 8 * sizeof(filename_size)));
-    printf("max file size\t%.2lf TB\n\n", 
-        sb->max_file_size / pow(2, 40));
-
-    printf("superblk size\t%lu Bytes\n", 
-        sizeof(struct hashfs_superblock));
-    printf("bitmap size\t%.2lf MB\n", 
-        (double)sb->bitmap_size / pow(2, 20));
-    printf("hash size\t%.2lf MB\n", 
-        (double)sb->hash_size / pow(2, 20));
-    printf("inode tbl size\t%.2lf MB\n\n", 
-        (double)sb->inodes_size / pow(2, 20));
-
-    printf("metadata size\t%.2lf MB (%.2lf%%)\n",
-        sb->data_offset_blk * sb->blocksize / pow(2, 20),
-        100.0 * sb->data_offset_blk * sb->blocksize / dev_info->size);
-}
-
 void calc_metadata(char *dev_path, struct hashfs_superblock *sb){
-    struct devinfo *dev_info;
     struct sb_settings *settings;
-
-    dev_info = get_dev_info(dev_path);
-    settings = get_sb_settings(dev_info);
-
-    setup_sb(sb, dev_info, settings);
-
-    print_setup(dev_path, sb, dev_info, settings);
+    settings = get_sb_settings(sb);
+    setup_sb(sb, settings, dev_path);
+    print_superblock(sb);
 }
 
 void mkfs(char *dev_path){
@@ -216,7 +163,7 @@ void mkfs(char *dev_path){
 
     printf("\nFormatting...\n");
 
-    dev_fd = open_dev(dev_path);
+    dev_fd = open_dev(dev_path, O_WRONLY);
 
     printf("Writing superblock...\n");
     write_sb(dev_fd, sb);

@@ -7,8 +7,8 @@ NC='\e[0m'
 
 cd `dirname $0`
 
-for tgt in fsck mkfs kmod; do
-    echo -e "${CYAN}==== mkfs.hashfs ${NC}"
+for tgt in fsck mkfs debugfs kmod; do
+    echo -e "${CYAN}==== $tgt ${NC}"
 
     cd $tgt && \
     make clean && \

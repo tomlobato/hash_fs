@@ -1,15 +1,10 @@
 CC = gcc
-CFLAGS = -c -Wall
+CFLAGS = -Wall
 LIBS = ../lib/xxhash.c ../lib/util.c -lm -luuid
 
-all: mkfs.hashfs
+all:
+	$(CC) $(CFLAGS) $(LIBS) -o mkfs.hashfs mkfs.c
 
-mkfs.hashfs: $(BUILD_DIR) mkfs.o
-	$(CC) mkfs.o $(LIBS) -o $@
-
-mkfs.o:
-	$(CC) $(CFLAGS) -o $@ mkfs.c
-				
 clean:
 	rm -rf *.o mkfs.hashfs
 

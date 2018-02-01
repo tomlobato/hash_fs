@@ -3,8 +3,8 @@ CFLAGS = -Wall
 LIBS = ../lib/xxhash.c ../lib/util.c -lm -luuid
 
 all:
-	$(CC) $(CFLAGS) $(LIBS) -o fsck.hashfs fsck.c
+	$(CC) $(CFLAGS) $(LIBS) -o debugfs.hashfs debugfs.c
 
 clean:
-	rm -rf *.o fsck.hashfs
+	rm -rf *.o debugfs.hashfs
 

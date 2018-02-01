@@ -37,6 +37,11 @@ struct hashfs_superblock {
     uint64_t next_inode_byte; // next byte available inside inode area
     uint64_t next_data_blk;   // next block available inside data area  
     uint64_t next_ino;        // next inode number available
+
+    uint64_t sector_count;
+    uint16_t sector_size;
+    uint64_t block_count;
+    uint64_t device_size; // bytes
 };
 
 typedef uint8_t filename_size;

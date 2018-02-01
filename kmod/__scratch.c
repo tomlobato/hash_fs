@@ -1,17 +1,6 @@
 
 #include "hashfs.h"
 
-
-
-struct hashfs_superblock *get_superblock(){
-    struct hashfs_superblock *sb;
-    sb = mkfs_calloc(1, sizeof(struct hashfs_superblock));
-    int fd = open("/dev/sdb", O_RDWR);
-    lseek(fd, sb->superblock_offset_byte, SEEK_SET);
-    read(fd, sb, sizeof(struct hashfs_superblock));
-    return sb;
-}
-
 void mkfile(char *name){
 
 }
