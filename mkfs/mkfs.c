@@ -125,13 +125,15 @@ void write_sb(int dev_fd, struct hashfs_superblock *sb){
 // Bitmap
 
 void zerofy_bitmap(int dev_fd, struct hashfs_superblock *sb){
-    int count = sb->bitmap_size / sb->blocksize;
-    if (sb->bitmap_size % sb->blocksize) 
-        count++;
+    int byte_count;
+    
+    byte_count = sb->bitmap_size;
+    if (sb->bitmap_size % sb->blocksize)
+        byte_count += sb->blocksize - (sb->bitmap_size % sb->blocksize);
 
     zerofy(dev_fd, 
            sb->bitmap_offset_blk * sb->blocksize, 
-           count, 
+           byte_count, 
            sb->blocksize * 10);
 }
 

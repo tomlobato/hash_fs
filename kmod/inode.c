@@ -106,97 +106,66 @@ struct dentry *hashfs_lookup(struct inode *dir,
                               struct dentry *child_dentry,
                               unsigned int flags) {
     uint32_t hash;
-    struct hashfs_superblock *hashfs_sb;
-    struct buffer_head *bh;
+    struct hashfs_superblock *hs;
     void *ptr;
-    uint64_t block_to_read;
-    uint64_t byte_in_block;
-    int bit_in_byte;
+    int found_in_bitmap;
     uint64_t inode_offset_byte;
-    uint8_t bitmap_byte;
+    uint8_t *bitmap_byte;
     uint64_t key_slot;
-    uint64_t bitmap_offset_byte;
-    uint64_t key_offset_byte;
-    struct inode *inode;
-    struct hashfs_inode *hashfs_inode;
+    struct inode *inode = NULL;
+    struct hashfs_inode *h_inode;
+    struct super_block *sb;
 
-    hashfs_sb = dir->i_sb->s_fs_info;
+    sb = dir->i_sb;
+    hs = sb->s_fs_info;
 
     // calculate hash from file name
     hash = xxh32(child_dentry->d_name.name, child_dentry->d_name.len, 0);
+    printk(KERN_DEBUG "hashfs_lookup %lu %s %u %d\n", dir->i_ino, child_dentry->d_name.name, hash, flags);
 
-    printk(KERN_DEBUG "hashfs_lookup %lu -%s- %d %d\n", dir->i_ino, child_dentry->d_name.name, hash, flags);
-
-    // get position in in the hash array
-    key_slot = hash / hashfs_sb->hash_len;
+    // get the position in the hash array
+    key_slot = hash % hs->hash_len;
     printk(KERN_DEBUG "key_slot=%llu\n", key_slot);    
 
-
     // check bitmap
-    bitmap_offset_byte = key_slot * 8;
-    block_to_read = hashfs_sb->bitmap_offset_blk + bitmap_offset_byte / hashfs_sb->blocksize;
-    byte_in_block = bitmap_offset_byte % hashfs_sb->blocksize;
+    bitmap_byte = read_bytes(sb, hs->bitmap_offset_blk, key_slot / 8);
+    // memcpy(&bitmap_byte, ptr, 1);
+    found_in_bitmap = (*bitmap_byte >> (7 - (key_slot % 8))) & 0b1 ;
+    printk(KERN_DEBUG "bitmap_byte=%d\n", *bitmap_byte);    
 
-    bh = sb_bread(dir->i_sb, block_to_read);
-    BUG_ON(!bh);
-    ptr = bh->b_data;
-    ptr += byte_in_block;
-    memcpy(&bitmap_byte, ptr, 1);
-    bit_in_byte = (bitmap_byte >> (7 - (key_slot % 8))) & 0b1 ;
-    printk(KERN_DEBUG "bit_in_byte=%d\n", bit_in_byte);    
+    if (!found_in_bitmap) {
+        printk(KERN_DEBUG "not found in bitmap.\n");
 
-
-    if (bit_in_byte) {
+    } else {
         // check hash array
-        key_offset_byte = key_slot * hashfs_sb->hash_slot_size;
-        block_to_read = hashfs_sb->hash_offset_blk + key_offset_byte / hashfs_sb->blocksize;
-        byte_in_block = key_offset_byte % hashfs_sb->blocksize;
-
-        bh = sb_bread(dir->i_sb, block_to_read);
-        BUG_ON(!bh);
-        ptr = bh->b_data;
-        ptr += byte_in_block;
-        memcpy(&inode_offset_byte, ptr, hashfs_sb->hash_slot_size);
+        ptr = read_bytes(sb, hs->hash_offset_blk, key_slot * hs->hash_slot_size);
+        memcpy(&inode_offset_byte, ptr, hs->hash_slot_size);
         printk(KERN_DEBUG "inode_offset_byte=%llu\n", inode_offset_byte);
-    } else {
-        // return NULL;
-    }
 
-    
-    hashfs_inode = kmem_cache_alloc(hashfs_inode_cache, GFP_KERNEL);
-    hashfs_inode->ino = 2;
-    hashfs_inode->block = 0;
-    hashfs_inode->size = 0;
-    hashfs_inode->name_size = 3;
-    hashfs_inode->name = NULL;
-    hashfs_inode->next = 0;
+        if (!inode_offset_byte) {
+            printk(KERN_DEBUG "inode_offset_byte cannot be null since we found it in the bitmap.\n");
 
-    inode = new_inode(dir->i_sb);
-    if (!inode) {
-        printk(KERN_ERR "Cannot create new inode. No memory.\n");
-        return NULL; 
+        } else {
+            // get inode in the hash bucket
+            h_inode = read_bytes(sb, hs->inodes_offset_blk, inode_offset_byte);    
+            // memcpy(&h_inode, ptr, sizeof(struct h_inode));
+            printk(KERN_DEBUG "hashfs_inode.ino=%llu hashfs_inode->block=%u\n", h_inode->ino, h_inode->block);
+
+            inode = new_inode(sb);
+
+            if (!inode) {
+                printk(KERN_ERR "Cannot create new inode. No memory.\n");
+
+            } else {
+                // h_inode = kmem_cache_alloc(hashfs_inode_cache, GFP_KERNEL);
+                // h_inode->ino = 2;
+                hashfs_fill_inode(sb, inode, h_inode);
+            }
+
+        }
     }
-    // inode->i_sb = dir->i_sb;
-    inode->i_ino = 2;
-    inode->i_op = &hashfs_inode_ops;
-    inode->i_atime = inode->i_mtime 
-                   = inode->i_ctime
-                   = CURRENT_TIME;
-    inode->i_private = hashfs_inode;    
-    
-    if (hashfs_inode->ino == HASHFS_ROOTDIR_INODE_NO) { 
-        inode->i_fop = &hashfs_dir_operations;
-        inode->i_mode = HASHFS_DEFAULT_MODE_DIR;
-        printk(KERN_DEBUG "hashfs_fill_inode: DIR %o\n", inode->i_mode);
-    } else {
-        inode->i_fop = &hashfs_file_operations;
-        inode->i_mode = HASHFS_DEFAULT_MODE_FILE;
-        printk(KERN_DEBUG "hashfs_fill_inode: FILE %o\n", inode->i_mode);
-    }
-    // inode->i_count++;
 
     d_add(child_dentry, inode);
-
 
     return child_dentry;
 }

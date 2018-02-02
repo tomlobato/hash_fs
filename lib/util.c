@@ -144,6 +144,8 @@ void zerofy(int fd, off_t offset, size_t count, int buf_len){
         hashfs_error("zerofy: error lseek`ing disk");
 
     if (!buf_len) buf_len = (int)count;
+    printf("lseek %ld buf_len=%d\n", offset, buf_len);
+    
     buf = hashfs_calloc(1, buf_len);
 
     rest = count;
@@ -153,8 +155,12 @@ void zerofy(int fd, off_t offset, size_t count, int buf_len){
         written = write(fd, buf, write_len);
         if (written == -1)
             hashfs_error("zerofy: error writing to disk");
+        printf("%d ", written);
         rest -= written;
     }
+
+    printf("\n");
+    fflush(stdout);
 }
 
 int open_dev(char *dev_path, int flags) {

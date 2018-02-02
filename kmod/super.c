@@ -19,7 +19,7 @@ static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
     ptr += HASHFS_SB_OFFSET_BYTE;
     hashfs_sb = (struct hashfs_superblock *)ptr;
 
-    printk(KERN_DEBUG "hashfs_fill_super: uuid=%d\n", hashfs_sb->uuid);
+    printk(KERN_DEBUG "hashfs_fill_super: uuid=%d\n", *hashfs_sb->uuid);
     printk(KERN_DEBUG "hashfs_fill_super: blocksize=%llu\n", hashfs_sb->blocksize);
 
     if (unlikely(hashfs_sb->magic != HASHFS_MAGIC)) {
@@ -71,10 +71,10 @@ struct dentry *hashfs_mount(struct file_system_type *fs_type,
 	return ret;
 }
 
-void hashfs_kill_superblock(struct super_block *sb) {
-    printk(KERN_DEBUG "hashfs_kill_superblock\n");
-    kill_block_super(sb);
-}
+// void hashfs_kill_superblock(struct super_block *sb) {
+//     printk(KERN_DEBUG "hashfs_kill_superblock\n");
+//     kill_block_super(sb);
+// }
 
 void hashfs_put_super(struct super_block *sb) {
     printk(KERN_DEBUG "hashfs_put_super\n");

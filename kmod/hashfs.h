@@ -56,7 +56,7 @@ struct hashfs_inode {
 	uint16_t i_links_count;	/* Links count */
 	uint32_t i_flags;	/* File flags */
     uint64_t ino;
-    uint32_t block; // max disk size: 2**32 * blocksize (16 TB for 4K blocks)
+    uint32_t block; 
     file_size size;  // max file size: 2**32 * blocksize (16 TB for 4K blocks)
     filename_size name_size; // max 255
     char *name; // the inode struct has only the pointer to the name, 

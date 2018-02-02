@@ -53,7 +53,7 @@ extern const struct file_operations hashfs_file_operations;
 struct dentry *hashfs_mount(struct file_system_type *fs_type,
                               int flags, const char *dev_name,
                               void *data);
-void hashfs_kill_superblock(struct super_block *sb);
+// void hashfs_kill_superblock(struct super_block *sb);
 
 void hashfs_destroy_inode(struct inode *inode);
 void hashfs_put_super(struct super_block *sb);
@@ -137,5 +137,6 @@ struct hashfs_inode *hashfs_get_root_dir_inode(struct super_block *sb);
 //                          umode_t mode);
 
 long long hashfs_pow(long long x, long long y);
+void *read_bytes(struct super_block *vfs_sb, uint64_t offset_blk, uint64_t offset_byte);
 
 #endif /*__KHASHFS_H__*/

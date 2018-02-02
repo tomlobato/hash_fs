@@ -5,7 +5,7 @@ bin=./mkfs.hashfs
 mounted=`mount | grep "^${dev} "`
 
 print_hd_start(){
-    sudo hexdump -s 976 -n 10000 -C $dev
+    sudo hexdump -s 976 -n 2500000 -C $dev
 }
 
 if [ -n "$mounted" ]; then
