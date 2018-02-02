@@ -185,11 +185,14 @@ void _hashfs_error(const char *func, int status, int errnum, const char *filenam
     char *bin;
     char *err_msg = "";
     char _err_msg[128];
+    char *sep = "";
 
     if (errnum) {
         strerror_r(errnum, _err_msg, sizeof(_err_msg));
+        if (strlen(msg) && msg[strlen(msg) - 1] != '\n') 
+            sep = ": ";
         err_msg = fmt_str("%s%s (errno %d)", 
-            (msg[strlen(msg) - 1] != '\n' ? ": " : ""),
+            sep,
             _err_msg, 
             errnum);
     }

@@ -44,6 +44,7 @@ int get_lines(char *fileName) {
 void test_error(){
   char *p = malloc(1);
   read(44, p, 78);
+  hashfs_error("asd %s qwe %d 123", "ee", 44);
   hashfs_error("asd %s qwe %d 123\n", "ee", 44);
 }
 
