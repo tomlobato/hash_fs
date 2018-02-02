@@ -6,8 +6,8 @@ GREEN='\e[32m'
 NC='\e[0m'
 
 cd `dirname $0`
-
-for tgt in fsck mkfs debugfs kmod; do
+# kmod
+for tgt in fsck mkfs debugfs ; do
     echo -e "${CYAN}==== $tgt ${NC}"
 
     cd $tgt && \

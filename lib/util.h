@@ -37,7 +37,7 @@
 #define COLOR_BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define COLOR_BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
-#define hashfs_error(args...)         print_error(__FUNCTION__, 1, errno, __FILE__, __LINE__, args);
+#define hashfs_error(format, ...)     _hashfs_error(__FUNCTION__, 1, errno, __FILE__, __LINE__, fmt_str(format, ##__VA_ARGS__));
 #define hashfs_malloc(size)           _hashfs_malloc(__FILE__, __LINE__, size);
 #define hashfs_calloc(nmemb, size)    _hashfs_calloc(__FILE__, __LINE__, nmemb, size);
 
@@ -59,11 +59,11 @@ void p(long long i);
 void ps(char *s);
 void print_superblock(struct hashfs_superblock *sb);
 void zerofy(int fd, off_t offset, size_t count, int buf_len);
-void print_error(const char *func, int status, int errnum, const char *filename, 
-                        unsigned int linenum, const char *format, ...);
 void save_args(int argc, char **argv);
 char *get_bin_path(char *argv0);
-char *fmt(const char *format, ...);
+void _hashfs_error(const char *func, int status, int errnum, const char *filename, 
+                        unsigned int linenum, char *msg);
+char *fmt_str(const char *format, ...);
 
 struct call_args {
     int argc;

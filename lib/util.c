@@ -161,7 +161,7 @@ int open_dev(char *dev_path, int flags) {
     return fd;
 }
 
-char *fmt(const char *format, ...){
+char *fmt_str(const char *format, ...){
     va_list args;
     char *out;
     int size, would_write;
@@ -180,24 +180,18 @@ char *fmt(const char *format, ...){
     return out;
 }
 
-void print_error(const char *func, int status, int errnum, const char *filename, 
-                        unsigned int linenum, const char *format, ...) {
-    va_list args;
-    char *msg = NULL;
-    int size = 0;
+void _hashfs_error(const char *func, int status, int errnum, const char *filename, 
+                        unsigned int linenum, char *msg) {
     char *bin;
     char *err_msg = "";
     char _err_msg[128];
 
-    va_start (args, format);
-    size = vsnprintf(msg, size, format, args) + 1;
-    va_end (args);
-    msg = malloc(sizeof(char) * size);
-    vsnprintf(msg, size, format, args);
-
     if (errnum) {
         strerror_r(errnum, _err_msg, sizeof(_err_msg));
-        err_msg = fmt(": %s (errno %d)", _err_msg, errnum);
+        err_msg = fmt_str("%s%s (errno %d)", 
+            (msg[strlen(msg) - 1] != '\n' ? ": " : ""),
+            _err_msg, 
+            errnum);
     }
 
     fflush(stdout);
@@ -268,10 +262,11 @@ void save_args(int argc, char **argv) {
 }
 
 char *get_bin_path(char *argv0) {
-    if (argv0[0] == '/')
-        return fmt("%s", argv0);
-    else
-        return fmt("%s/%s", getcwd(NULL, 256), argv0);
+    if (argv0[0] == '/') {
+        return fmt_str("%s", argv0);
+    } else {
+        return fmt_str("%s/%s", getcwd(NULL, 256), argv0);
+    }
 }
 
 // FS
