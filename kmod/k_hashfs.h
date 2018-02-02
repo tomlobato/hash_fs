@@ -27,14 +27,14 @@
 // #include <linux/parser.h>
 // #include <linux/random.h>
 // #include <linux/buffer_head.h>
-// #include <linux/exportfs.h>
+#include <linux/exportfs.h>
 #include <linux/vfs.h>
-// #include <linux/seq_file.h>
-// #include <linux/mount.h>
-// #include <linux/log2.h>
+#include <linux/seq_file.h>
+#include <linux/mount.h>
+#include <linux/log2.h>
 // #include <linux/quotaops.h>
-// #include <linux/uaccess.h>
-// #include <linux/dax.h>
+#include <linux/uaccess.h>
+#include <linux/dax.h>
 
 
 
@@ -53,7 +53,7 @@ extern const struct file_operations hashfs_file_operations;
 struct dentry *hashfs_mount(struct file_system_type *fs_type,
                               int flags, const char *dev_name,
                               void *data);
-// void hashfs_kill_superblock(struct super_block *sb);
+void hashfs_kill_superblock(struct super_block *sb);
 
 void hashfs_destroy_inode(struct inode *inode);
 void hashfs_put_super(struct super_block *sb);
@@ -67,7 +67,9 @@ struct dentry *hashfs_lookup(struct inode *parent_inode,
 int hashfs_mkdir(struct inode *dir, struct dentry *dentry,
                    umode_t mode);
 
-ssize_t hashfs_readdir(struct file *filp, char __user *buf, size_t siz, loff_t *ppos);
+ssize_t hashfs_readdir(struct file *file, struct dir_context *ctx);
+
+// ssize_t hashfs_readdir(struct file *filp, char __user *buf, size_t siz, loff_t *ppos);
 
 ssize_t hashfs_read(struct file * filp, char __user * buf, size_t len,
                       loff_t * ppos);

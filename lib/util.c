@@ -283,6 +283,46 @@ char *get_bin_path(char *argv0) {
     }
 }
 
+int get_words(char *fileName) {
+    int fd;
+    char *line;
+    char *word;
+    char *sep;
+    
+    fd = open(fileName, O_RDONLY);
+    line = malloc(512 * sizeof(char));
+    sep = " \n\t\r";
+
+    while (read(fd, line, 512)) {
+        word = strtok(line, sep);
+        while (word != NULL) {
+            printf("%s\n", word);
+            word = strtok(NULL, sep);
+        }
+    }
+
+    close(fd);    
+
+    return 0;
+}
+
+int get_lines(char *fileName) {
+    FILE *file;
+    char *str;
+    
+    file = fopen(fileName, "r");
+    str = malloc(512 * sizeof(char));
+
+    while (fgets(str, 512, file)) {
+        str[511] = 0;
+        printf("%s\n", str);
+    }
+
+    fclose(file);    
+
+    return 0;
+}
+
 // FS
 
 struct hashfs_superblock *get_superblock(char *dev_file){

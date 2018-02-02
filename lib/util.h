@@ -65,6 +65,8 @@ void _hashfs_error(const char *func, int status, int errnum, const char *filenam
                         unsigned int linenum, char *msg);
 char *fmt_str(const char *format, ...);
 int is_mounted(char *dev_path);
+int get_lines(char *fileName);
+int get_words(char *fileName);
 
 struct call_args {
     int argc;

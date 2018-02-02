@@ -4,7 +4,7 @@ struct file_system_type hashfs_fs_type = {
     .owner = THIS_MODULE,
     .name = "hashfs",
     .mount = hashfs_mount,
-    .kill_sb = kill_block_super,
+    .kill_sb = hashfs_kill_superblock,
     .fs_flags = FS_REQUIRES_DEV,
 };
 
@@ -22,7 +22,8 @@ const struct inode_operations hashfs_inode_ops = {
 
 const struct file_operations hashfs_dir_operations = {
     .owner = THIS_MODULE,
-    .read = hashfs_readdir
+    .read  = generic_read_dir,
+	.iterate = hashfs_readdir
 };
 
 const struct file_operations hashfs_file_operations = {
