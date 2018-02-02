@@ -15,6 +15,30 @@
 #include <linux/time.h>
 #include <linux/version.h>
 
+
+
+
+// #include <linux/module.h>
+// #include <linux/string.h>
+// #include <linux/fs.h>
+// #include <linux/slab.h>
+// #include <linux/init.h>
+// #include <linux/blkdev.h>
+// #include <linux/parser.h>
+// #include <linux/random.h>
+// #include <linux/buffer_head.h>
+// #include <linux/exportfs.h>
+#include <linux/vfs.h>
+// #include <linux/seq_file.h>
+// #include <linux/mount.h>
+// #include <linux/log2.h>
+// #include <linux/quotaops.h>
+// #include <linux/uaccess.h>
+// #include <linux/dax.h>
+
+
+
+
 #include "hashfs.h"
 #include "k_xxhash.h"
 
@@ -33,6 +57,7 @@ void hashfs_kill_superblock(struct super_block *sb);
 
 void hashfs_destroy_inode(struct inode *inode);
 void hashfs_put_super(struct super_block *sb);
+int hashfs_statfs(struct dentry * dentry, struct kstatfs * buf);
 
 int hashfs_create(struct inode *dir, struct dentry *dentry,
                     umode_t mode, bool excl);

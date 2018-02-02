@@ -43,8 +43,8 @@
 
 char *join_paths(char *p1, char *p2);
 char *mk_str(char *fmt, char *str);
-char *mk_uuid();
-int is_mounted(char *dev_path);
+uint8_t *mk_uuid();
+// char *uuid_str(uuid_t uuid);
 int is_prime(unsigned long long num);
 int open_dev(char *dev_path, int flags);
 long long get_num_from_file(char *path);
@@ -64,6 +64,7 @@ char *get_bin_path(char *argv0);
 void _hashfs_error(const char *func, int status, int errnum, const char *filename, 
                         unsigned int linenum, char *msg);
 char *fmt_str(const char *format, ...);
+int is_mounted(char *dev_path);
 
 struct call_args {
     int argc;

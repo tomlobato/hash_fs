@@ -12,15 +12,14 @@ static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
     printk(KERN_DEBUG "hashfs_fill_super: data=%s\n", (char *)data);
 
     bh = sb_bread(sb, HASHFS_SUPERBLOCK_BLOCK_NO);
+    BUG_ON(!bh);
 
     ptr = bh->b_data;
 
-    BUG_ON(!bh);
+    ptr += HASHFS_SB_OFFSET_BYTE;
+    hashfs_sb = (struct hashfs_superblock *)ptr;
 
-    bh->b_data += HASHFS_SB_OFFSET;
-    hashfs_sb = (struct hashfs_superblock *)bh->b_data;
-
-    printk(KERN_DEBUG "hashfs_fill_super: uuid=%s\n", hashfs_sb->uuid);
+    printk(KERN_DEBUG "hashfs_fill_super: uuid=%d\n", hashfs_sb->uuid);
     printk(KERN_DEBUG "hashfs_fill_super: blocksize=%llu\n", hashfs_sb->blocksize);
 
     if (unlikely(hashfs_sb->magic != HASHFS_MAGIC)) {
@@ -84,4 +83,26 @@ void hashfs_put_super(struct super_block *sb) {
 
 void hashfs_save_sb(struct super_block *sb) {
     printk(KERN_DEBUG "hashfs_save_sb\n");
+}
+
+int hashfs_statfs (struct dentry * dentry, struct kstatfs * buf)
+{
+	struct hashfs_superblock *hs = dentry->d_sb->s_fs_info;
+	u64 fsid;
+
+	buf->f_type = HASHFS_MAGIC;
+	buf->f_bsize = hs->blocksize;
+	buf->f_blocks = hs->block_count - hs->data_offset_blk;
+	buf->f_bfree = buf->f_blocks - hs->next_data_blk;
+	buf->f_bavail = buf->f_bfree;
+	buf->f_files = le32_to_cpu(hs->inode_count);
+	buf->f_ffree = hs->inode_count - hs->next_ino;
+	buf->f_namelen = hashfs_pow(2, 8 * sizeof(filename_size));
+
+	fsid = le64_to_cpup((void *)hs->uuid) ^
+	       le64_to_cpup((void *)hs->uuid + sizeof(u64));
+	buf->f_fsid.val[0] = fsid & 0xFFFFFFFFUL;
+	buf->f_fsid.val[1] = (fsid >> 32) & 0xFFFFFFFFUL;
+
+	return 0;
 }

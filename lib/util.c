@@ -50,13 +50,18 @@ unsigned long long next_prime(unsigned long long i){
     return i;
 }
 
-char *mk_uuid(){
-    uuid_t uuid_bin;
-    uuid_generate(uuid_bin);
-    char *uuid = hashfs_malloc(sizeof(char) * 36);
-    uuid_unparse(uuid_bin, uuid);
-    return (char *)uuid;
+uint8_t *mk_uuid(){
+    uint8_t *uuid;
+    uuid = malloc(sizeof(uuid_t));
+    uuid_generate(uuid);
+    return uuid;
 }
+
+// char *uuid_str(uuid_t uuid){
+//     char *str = hashfs_malloc(sizeof(char) * 36);
+//     uuid_unparse(uuid, str);
+//     return str;
+// }
 
 uint64_t divceil(uint64_t x, uint64_t y){
     uint64_t z;
@@ -284,7 +289,7 @@ struct hashfs_superblock *get_superblock(char *dev_file){
     sb = hashfs_calloc(1, sb_len);
     fd = open_dev(dev_file, O_RDONLY);
 
-    if (lseek(fd, sb->superblock_offset_byte, SEEK_SET) == -1)
+    if (lseek(fd, HASHFS_SB_OFFSET_BYTE, SEEK_SET) == -1)
         hashfs_error("get_superblock: error lseek`ing disk");
 
     if (read(fd, sb, sb_len) != sb_len)
@@ -326,7 +331,7 @@ void print_superblock(struct hashfs_superblock *sb) {
     printf("inode tbl size\t%.2lf MB\n\n", 
         (double)sb->inodes_size / pow(2, 20));
 
-    printf("metadata size\t%.2lf MB (%.2lf%%)\n",
+    printf("metadata total\t%.2lf MB (%.2lf%%)\n",
         sb->data_offset_blk * sb->blocksize / pow(2, 20),
         100.0 * sb->data_offset_blk * sb->blocksize / sb->device_size);
 }

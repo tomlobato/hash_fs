@@ -11,6 +11,7 @@ struct file_system_type hashfs_fs_type = {
 const struct super_operations hashfs_sb_ops = {
     .destroy_inode = hashfs_destroy_inode,
     .put_super = hashfs_put_super,
+    .statfs	= hashfs_statfs
 };
 
 const struct inode_operations hashfs_inode_ops = {

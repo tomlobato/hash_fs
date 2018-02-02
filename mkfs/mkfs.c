@@ -75,8 +75,8 @@ void setup_sb(struct hashfs_superblock *sb, struct sb_settings *settings, char *
     sb->next_inode_byte         = 0;
     sb->next_ino                = HASHFS_ROOTDIR_INODE_NO + 1;
 
-    memcpy(sb->uuid, mk_uuid(), 36);
-
+    memcpy(sb->uuid, mk_uuid(), sizeof(sb->uuid));
+    
     // From disk info
     sb->inode_count = get_inode_count(sb->block_count);
     sb->max_file_size = sb->blocksize * pow(2, 8 * sizeof(file_size));
@@ -85,9 +85,6 @@ void setup_sb(struct hashfs_superblock *sb, struct sb_settings *settings, char *
     //
     // Disk Layout
     // 
-
-    // superblock
-    sb->superblock_offset_byte  = HASHFS_SB_OFFSET;
 
     // bitmap
     sb->bitmap_offset_blk = HASHFS_BITMAP_OFFSET_BLK;
@@ -113,11 +110,11 @@ void setup_sb(struct hashfs_superblock *sb, struct sb_settings *settings, char *
 
 void write_sb(int dev_fd, struct hashfs_superblock *sb){
     zerofy(dev_fd, 
-           sb->superblock_offset_byte, 
-           (sb->blocksize - sb->superblock_offset_byte),
+           HASHFS_SB_OFFSET_BYTE, 
+           (sb->blocksize - HASHFS_SB_OFFSET_BYTE),
            0);
 
-    if (lseek(dev_fd, sb->superblock_offset_byte, SEEK_SET) == -1)
+    if (lseek(dev_fd, HASHFS_SB_OFFSET_BYTE, SEEK_SET) == -1)
         hashfs_error("write_sb: error lseek`ing disk");
 
     int w = write(dev_fd, sb, sizeof(struct hashfs_superblock));

@@ -50,6 +50,7 @@ void test_error(){
 
 int main (int argc, char **argv) {
   int c;
+  int index;
 
   save_args(argc, argv);
 
@@ -75,8 +76,13 @@ int main (int argc, char **argv) {
         print_superblock(get_superblock(optarg));
         break;
       default:
-        abort ();
+        // usage();
+        // printf()
+        exit(1);
       }
+
+  for (index = optind; index < argc; index++)
+    printf ("Non-option argument: %s\n", argv[index]);
 
   return 0;
 }

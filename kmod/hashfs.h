@@ -2,7 +2,7 @@
 #define HASHFS_VERSION 1
 #define HASHFS_VERSION_NAME "0.1"
 #define HASHFS_MAGIC 0x99C7FF92
-#define HASHFS_SB_OFFSET 1024
+#define HASHFS_SB_OFFSET_BYTE 1024
 #define HASHFS_DEFAULT_MODE_FILE 0100664
 #define HASHFS_DEFAULT_MODE_DIR  0040775
 
@@ -13,9 +13,8 @@ struct hashfs_superblock {
     uint64_t version;
     uint64_t magic;
     uint64_t blocksize;
-    char uuid[36];
 
-    uint64_t superblock_offset_byte;
+    uint8_t uuid[16]; /* 128-bit uuid for volume */
 
     uint64_t bitmap_offset_blk;
     uint64_t bitmap_size;       // bytes

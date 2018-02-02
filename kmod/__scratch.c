@@ -60,7 +60,7 @@ void add(char *name, char *path) {
         sb->next_data += inode->block + inode->size;
 
         // update sb
-        lseek(fd, sb->superblock_offset_byte, SEEK_SET);
+        lseek(fd, HASHFS_SB_OFFSET_BYTE, SEEK_SET);
         write(fd, sb, sizeof(struct hashfs_superblock));
     }
 

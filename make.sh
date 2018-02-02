@@ -11,7 +11,7 @@ for tgt in fsck mkfs debugfs kmod; do
     echo -e "${CYAN}==== $tgt ${NC}"
 
     cd $tgt && \
-    make clean && \
+    # make clean && \
     make
 
     if [ $? -eq 0 ]; then
