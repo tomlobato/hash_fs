@@ -42,7 +42,9 @@ static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
     sb->s_maxbytes = hashfs_pow(2, 8 * sizeof(file_size)) * hashfs_sb->blocksize;
     sb->s_op = &hashfs_sb_ops;
 
-    root_hashfs_inode = hashfs_get_root_dir_inode(sb);
+    root_hashfs_inode = kmem_cache_alloc(hashfs_inode_cache, GFP_KERNEL);    
+    root_hashfs_inode->ino = HASHFS_ROOTDIR_INODE_NO;
+
     root_inode = new_inode(sb);
     if (!root_inode || !root_hashfs_inode) {
         ret = -ENOMEM;

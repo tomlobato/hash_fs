@@ -14,30 +14,13 @@
 #include <linux/slab.h>
 #include <linux/time.h>
 #include <linux/version.h>
-
-
-
-
-// #include <linux/module.h>
-// #include <linux/string.h>
-// #include <linux/fs.h>
-// #include <linux/slab.h>
-// #include <linux/init.h>
-// #include <linux/blkdev.h>
-// #include <linux/parser.h>
-// #include <linux/random.h>
-// #include <linux/buffer_head.h>
 #include <linux/exportfs.h>
 #include <linux/vfs.h>
 #include <linux/seq_file.h>
 #include <linux/mount.h>
 #include <linux/log2.h>
-// #include <linux/quotaops.h>
 #include <linux/uaccess.h>
 #include <linux/dax.h>
-
-
-
 
 #include "hashfs.h"
 #include "k_xxhash.h"
@@ -69,8 +52,6 @@ int hashfs_mkdir(struct inode *dir, struct dentry *dentry,
 
 ssize_t hashfs_readdir(struct file *file, struct dir_context *ctx);
 
-// ssize_t hashfs_readdir(struct file *filp, char __user *buf, size_t siz, loff_t *ppos);
-
 ssize_t hashfs_read(struct file * filp, char __user * buf, size_t len,
                       loff_t * ppos);
 ssize_t hashfs_write(struct file * filp, const char __user * buf, size_t len,
@@ -78,65 +59,9 @@ ssize_t hashfs_write(struct file * filp, const char __user * buf, size_t len,
 
 extern struct kmem_cache *hashfs_inode_cache;
 
-// /* Helper functions */
 
-// // To translate VFS superblock to hashfs superblock
-// static inline struct hashfs_superblock *hashfs_SB(struct super_block *sb) {
-//     return sb->s_fs_info;
-// }
-// static inline struct hashfs_inode *hashfs_INODE(struct inode *inode) {
-//     return inode->i_private;
-// }
-
-// static inline uint64_t hashfs_INODES_PER_BLOCK(struct super_block *sb) {
-//     struct hashfs_superblock *hashfs_sb;
-//     hashfs_sb = hashfs_SB(sb);
-//     return hashfs_INODES_PER_BLOCK_HSB(hashfs_sb);
-// }
-
-// // Given the inode_no, calcuate which block in inode table contains the corresponding inode
-// static inline uint64_t hashfs_INODE_BLOCK_OFFSET(struct super_block *sb, uint64_t inode_no) {
-//     struct hashfs_superblock *hashfs_sb;
-//     hashfs_sb = hashfs_SB(sb);
-//     return inode_no / hashfs_INODES_PER_BLOCK_HSB(hashfs_sb);
-// }
-// static inline uint64_t hashfs_INODE_BYTE_OFFSET(struct super_block *sb, uint64_t inode_no) {
-//     struct hashfs_superblock *hashfs_sb;
-//     hashfs_sb = hashfs_SB(sb);
-//     return (inode_no % hashfs_INODES_PER_BLOCK_HSB(hashfs_sb)) * sizeof(struct hashfs_inode);
-// }
-
-// static inline uint64_t hashfs_DIR_MAX_RECORD(struct super_block *sb) {
-//     struct hashfs_superblock *hashfs_sb;
-//     hashfs_sb = hashfs_SB(sb);
-//     return hashfs_sb->blocksize / sizeof(struct hashfs_dir_record);
-// }
-
-// // From which block does data blocks start
-// static inline uint64_t hashfs_DATA_BLOCK_TABLE_START_BLOCK_NO(struct super_block *sb) {
-//     struct hashfs_superblock *hashfs_sb;
-//     hashfs_sb = hashfs_SB(sb);
-//     return hashfs_DATA_BLOCK_TABLE_START_BLOCK_NO_HSB(hashfs_sb);
-// }
-
-// void hashfs_save_sb(struct super_block *sb);
-
-// // functions to operate inode
 void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
                         struct hashfs_inode *hashfs_inode);
-// int hashfs_alloc_hashfs_inode(struct super_block *sb, uint64_t *out_inode_no);
-// struct hashfs_inode *hashfs_get_hashfs_inode(struct super_block *sb,
-//                                                 uint64_t inode_no);
-
-struct hashfs_inode *hashfs_get_root_dir_inode(struct super_block *sb);
-
-// void hashfs_save_hashfs_inode(struct super_block *sb,
-//                                 struct hashfs_inode *inode);
-// int hashfs_add_dir_record(struct super_block *sb, struct inode *dir,
-//                            struct dentry *dentry, struct inode *inode);
-// int hashfs_alloc_data_block(struct super_block *sb, uint64_t *out_data_block_no);
-// int hashfs_create_inode(struct inode *dir, struct dentry *dentry,
-//                          umode_t mode);
 
 long long hashfs_pow(long long x, long long y);
 void *read_bytes(struct super_block *vfs_sb, uint64_t offset_blk, uint64_t offset_byte);
