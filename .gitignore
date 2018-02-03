@@ -55,8 +55,7 @@ dkms.conf
 /data
 /build
 
-._.DS_Store
-.DS_Store
+*DS_Store
 .vscode/
 /mkfs/mkfs.hashfs
 /fsck/fsck.hashfs
@@ -66,3 +65,8 @@ dkms.conf
 tempCodeRunnerFile
 a.out
 .AppleDouble
+
+/lib/include_linux
+/lib/include_usr
+/lib/include_gcc_x86_64-linux-gnu
+/lib/include_linux_arch_x86
