@@ -4,7 +4,7 @@ struct file_system_type hashfs_fs_type = {
     .owner = THIS_MODULE,
     .name = "hashfs",
     .mount = hashfs_mount,
-    .kill_sb = hashfs_kill_superblock,
+    .kill_sb = kill_block_super,
     .fs_flags = FS_REQUIRES_DEV,
 };
 

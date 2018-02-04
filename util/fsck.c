@@ -1,4 +1,4 @@
-#include "fsck.h"
+#include "../lib/common.h"
 
 void check(char *dev_path){
 }

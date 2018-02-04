@@ -1,5 +1,16 @@
+#include "../lib/common.h"
 
-#include "mkfs.h"
+#define IS_DEV
+
+#ifdef IS_DEV
+    #define ALLOW_DEVICE "/dev/sdb"
+#endif
+
+#define HASHFS_HASH_MODULUS_FACTOR 10
+#define HASHFS_BITMAP_OFFSET_BLK 1
+
+struct sb_settings {
+};
 
 // Params
 
@@ -74,7 +85,7 @@ void setup_sb(struct hashfs_superblock *sb, struct sb_settings *settings, char *
     sb->next_ino                = HASHFS_ROOTDIR_INODE_NO + 1;
     sb->next_data_blk           = 0;
     sb->next_inode_byte         = 0;
-    sb->free_inode_count        = inode_count;
+    sb->free_inode_count        = sb->inode_count;
 
     memcpy(sb->uuid, mk_uuid(), sizeof(sb->uuid));
     

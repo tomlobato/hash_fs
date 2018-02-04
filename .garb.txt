@@ -1,0 +1,2 @@
+                //,
+                // "databaseFilename": "${workspaceRoot}/.vscode/db_c_cpp.db"

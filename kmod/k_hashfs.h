@@ -36,7 +36,6 @@ extern const struct file_operations hashfs_file_operations;
 struct dentry *hashfs_mount(struct file_system_type *fs_type,
                               int flags, const char *dev_name,
                               void *data);
-void hashfs_kill_superblock(struct super_block *sb);
 
 void hashfs_destroy_inode(struct inode *inode);
 void hashfs_put_super(struct super_block *sb);
@@ -78,5 +77,5 @@ void hashfs_save_sb(struct super_block *sb);
 #define READ_BYTES(sb, bh, byte_ptr, blk, byte) \
     bh = sb_bread(sb, blk + byte / sb->s_blocksize); \
     BUG_ON(!bh); \
-    byte_ptr = bh->b_data; \
+    byte_ptr = (void *)bh->b_data; \
     byte_ptr += byte % sb->s_blocksize;    

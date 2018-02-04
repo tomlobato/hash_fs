@@ -5,29 +5,21 @@
             "includePath": [
                 "${workspaceRoot}",
                 "${workspaceRoot}/lib/include_linux",
+                "${workspaceRoot}/lib/include_linux_arch_x86/uapi",
                 "${workspaceRoot}/lib/include_usr",
-                "${workspaceRoot}/lib/include_usr/x86_64-linux-gnu",
-                "${workspaceRoot}/lib/include_linux/linux",
                 "${workspaceRoot}/lib/include_gcc_x86_64-linux-gnu",
-                "${workspaceRoot}/lib/include_linux_arch_x86"
-        ],
+                "${workspaceRoot}/lib/include_linux_arch_x86",
+                "${workspaceRoot}/lib/include_usr/x86_64-linux-gnu"
+            ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
             "browse": {
                 "path": [
-                    "${workspaceRoot}",
-                    "${workspaceRoot}/lib/include_linux",
-                    "${workspaceRoot}/lib/include_usr",
-                    "${workspaceRoot}/lib/include_usr/x86_64-linux-gnu",
-                    "${workspaceRoot}/lib/include_linux/linux",
-                    "${workspaceRoot}/lib/include_gcc_x86_64-linux-gnu",
-                    "${workspaceRoot}/lib/include_linux_arch_x86"
+                    "${workspaceRoot}"
                 ],
-                "limitSymbolsToIncludedHeaders": true,
-                "databaseFilename": "${workspaceRoot}/.vscode/c_cpp.db"
+                "limitSymbolsToIncludedHeaders": false
             },
-            "macFrameworkPath": [
-            ]
+            "macFrameworkPath": []
         }
     ],
     "version": 3

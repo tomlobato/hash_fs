@@ -1,15 +1,19 @@
 {
     // C/C++
-    "C_Cpp.intelliSenseEngine": "Default",
-    "C_Cpp.autocomplete": "Default",
-    "C_Cpp.intelliSenseEngineFallback": "Disabled",
-    "C_Cpp.formatting": "Default",
+    // "C_Cpp.intelliSenseEngine": "Default",
+    // "C_Cpp.autocomplete": "Default",
+    // "C_Cpp.intelliSenseEngineFallback": "Enabled",
+    // "C_Cpp.formatting": "Default",
+    "C_Cpp.loggingLevel": "Information",
+    "C_Cpp.intelliSenseEngineFallback": "Enabled",
 
-    "editor.quickSuggestions": { 
-        "other": true, 
-        "comments": true, 
-        "strings": true 
-    },
+    // "editor.quickSuggestions": { 
+    //     "other": true, 
+    //     "comments": true, 
+    //     "strings": true 
+    // },
+
+    // "editor.wordBasedSuggestions": true,
 
     "files.associations": {
         "*.h": "c"
@@ -17,7 +21,6 @@
 
     "git.enabled": false,
     "editor.find.autoFindInSelection": true,
-    "editor.wordBasedSuggestions": false,
     "workbench.editor.showIcons": true,
     "workbench.iconTheme": "vs-seti",
     "explorer.confirmDelete": false,
@@ -47,5 +50,4 @@
         "tempCodeRunnerFile": true,
         "a.out": true
     }
-
 }
