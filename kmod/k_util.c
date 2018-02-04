@@ -7,16 +7,13 @@ long long hashfs_pow(long long x, long long y){
     return x;
 }
 
-void *read_bytes(struct super_block *sb, uint64_t offset_blk, uint64_t offset_byte) {
-    void *ptr;
+void *read_bytes(struct super_block *sb, uint64_t block, uint64_t byte) {
     struct buffer_head *bh;
 
-    bh = sb_bread(sb, offset_blk + offset_byte / sb->s_blocksize);
+    bh = sb_bread(sb, block + byte / sb->s_blocksize);
     BUG_ON(!bh);
-    printk(KERN_DEBUG "bh: b_size=%lu\n", bh->b_size);
 
-    ptr = bh->b_data;
-    ptr += offset_byte % sb->s_blocksize;
-
-    return ptr;
+    return (void *)(bh->b_data) 
+            + byte % sb->s_blocksize;
 }
+

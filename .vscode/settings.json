@@ -1,0 +1,51 @@
+{
+    // C/C++
+    "C_Cpp.intelliSenseEngine": "Default",
+    "C_Cpp.autocomplete": "Default",
+    "C_Cpp.intelliSenseEngineFallback": "Disabled",
+    "C_Cpp.formatting": "Default",
+
+    "editor.quickSuggestions": { 
+        "other": true, 
+        "comments": true, 
+        "strings": true 
+    },
+
+    "files.associations": {
+        "*.h": "c"
+    },
+
+    "git.enabled": false,
+    "editor.find.autoFindInSelection": true,
+    "editor.wordBasedSuggestions": false,
+    "workbench.editor.showIcons": true,
+    "workbench.iconTheme": "vs-seti",
+    "explorer.confirmDelete": false,
+    "extensions.ignoreRecommendations": false,
+    "workbench.colorTheme": "Monokai",
+    "editor.minimap.enabled": false,
+    "editor.wordWrap": "on",
+    "window.zoomLevel": 0,
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/*.DS_Store": true,
+        "**/*.o": true,
+        "**/*.cmd": true,
+        "**/*.mod.c": true,
+        "**/.tmp_versions": true,
+        "**/modules.order": true,
+        // ".vscode": true,
+        "**/*.ko": true,
+        "**/.smbdelete*": true,
+        "**/*.hashfs": true,
+        "**/Module.symvers": true,
+        "lib/test": true,
+        "**/._*": true,
+        "tempCodeRunnerFile": true,
+        "a.out": true
+    }
+
+}

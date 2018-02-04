@@ -56,7 +56,7 @@ dkms.conf
 /build
 
 *DS_Store
-.vscode/
+/.vscode/c_cpp.db
 /mkfs/mkfs.hashfs
 /fsck/fsck.hashfs
 /debugfs/debugfs.hashfs
@@ -70,3 +70,4 @@ a.out
 /lib/include_usr
 /lib/include_gcc_x86_64-linux-gnu
 /lib/include_linux_arch_x86
+.smbdelete*

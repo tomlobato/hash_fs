@@ -16,7 +16,6 @@ const struct super_operations hashfs_sb_ops = {
 
 const struct inode_operations hashfs_inode_ops = {
     .create = hashfs_create,
-    .mkdir = hashfs_mkdir,
     .lookup = hashfs_lookup,
 };
 

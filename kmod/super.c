@@ -85,7 +85,18 @@ void hashfs_put_super(struct super_block *sb) {
 }
 
 void hashfs_save_sb(struct super_block *sb) {
+    struct buffer_head *bh;
+    struct hashfs_superblock *hsb = sb->s_fs_info;
+
     printk(KERN_DEBUG "hashfs_save_sb\n");
+
+    bh = sb_bread(sb, HASHFS_SUPERBLOCK_BLOCK_NO);
+    BUG_ON(!bh);
+
+    bh->b_data = (char *)hsb;
+    mark_buffer_dirty(bh);
+    sync_dirty_buffer(bh);
+    brelse(bh);
 }
 
 int hashfs_statfs (struct dentry * dentry, struct kstatfs * buf)

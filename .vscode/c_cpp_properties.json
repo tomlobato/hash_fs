@@ -1,0 +1,34 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceRoot}",
+                "${workspaceRoot}/lib/include_linux",
+                "${workspaceRoot}/lib/include_usr",
+                "${workspaceRoot}/lib/include_usr/x86_64-linux-gnu",
+                "${workspaceRoot}/lib/include_linux/linux",
+                "${workspaceRoot}/lib/include_gcc_x86_64-linux-gnu",
+                "${workspaceRoot}/lib/include_linux_arch_x86"
+        ],
+            "defines": [],
+            "intelliSenseMode": "clang-x64",
+            "browse": {
+                "path": [
+                    "${workspaceRoot}",
+                    "${workspaceRoot}/lib/include_linux",
+                    "${workspaceRoot}/lib/include_usr",
+                    "${workspaceRoot}/lib/include_usr/x86_64-linux-gnu",
+                    "${workspaceRoot}/lib/include_linux/linux",
+                    "${workspaceRoot}/lib/include_gcc_x86_64-linux-gnu",
+                    "${workspaceRoot}/lib/include_linux_arch_x86"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": "${workspaceRoot}/.vscode/c_cpp.db"
+            },
+            "macFrameworkPath": [
+            ]
+        }
+    ],
+    "version": 3
+}

@@ -30,6 +30,6 @@ ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len,
 
 ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len,
                       loff_t *ppos) {
-    printk(KERN_DEBUG "hashfs_write %d\n", buf[0]);
+    printk(KERN_DEBUG "hashfs_write %.*s\n", (int)len, buf);
     return len;
 }

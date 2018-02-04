@@ -29,6 +29,7 @@ struct hashfs_superblock {
     uint64_t data_size;         // bytes
     
     uint64_t inode_count;
+    uint64_t free_inode_count;
     uint64_t hash_len;          // number of slots in the hash
     uint64_t hash_slot_size;    // size in bytes of the hash slot
     uint64_t max_file_size;     // in bytes

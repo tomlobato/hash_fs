@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "make.sh",
+            "type": "shell",
+            "command": "ssh",
+            "args": [
+                "tom@192.168.56.2", "'cd /home/tom/fs/hash_fs; ./make.sh'"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "test.sh",
+            "type": "shell",
+            "command": "ssh",
+            "args": [
+                "tom@192.168.56.2", "'cd /home/tom/fs/hash_fs; ./test.sh'"
+            ]
+        }
+    ]
+}

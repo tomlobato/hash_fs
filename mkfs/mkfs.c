@@ -71,14 +71,16 @@ void setup_sb(struct hashfs_superblock *sb, struct sb_settings *settings, char *
 
     sb->version                 = HASHFS_VERSION;
     sb->magic                   = HASHFS_MAGIC;
+    sb->next_ino                = HASHFS_ROOTDIR_INODE_NO + 1;
     sb->next_data_blk           = 0;
     sb->next_inode_byte         = 0;
-    sb->next_ino                = HASHFS_ROOTDIR_INODE_NO + 1;
+    sb->free_inode_count        = inode_count;
 
     memcpy(sb->uuid, mk_uuid(), sizeof(sb->uuid));
     
     // From disk info
     sb->inode_count = get_inode_count(sb->block_count);
+    sb->free_inode_count = sb->inode_count - 1;
     sb->max_file_size = sb->blocksize * pow(2, 8 * sizeof(file_size));
     sb->hash_len = next_prime(sb->inode_count * HASHFS_HASH_MODULUS_FACTOR);
 

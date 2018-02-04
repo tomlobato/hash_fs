@@ -47,10 +47,10 @@ int hashfs_create(struct inode *dir, struct dentry *dentry,
 struct dentry *hashfs_lookup(struct inode *parent_inode,
                                struct dentry *child_dentry,
                                unsigned int flags);
-int hashfs_mkdir(struct inode *dir, struct dentry *dentry,
-                   umode_t mode);
+// int hashfs_mkdir(struct inode *dir, struct dentry *dentry,
+//                    umode_t mode);
 
-ssize_t hashfs_readdir(struct file *file, struct dir_context *ctx);
+int hashfs_readdir(struct file *file, struct dir_context *ctx);
 
 ssize_t hashfs_read(struct file * filp, char __user * buf, size_t len,
                       loff_t * ppos);
@@ -66,4 +66,17 @@ void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
 long long hashfs_pow(long long x, long long y);
 void *read_bytes(struct super_block *vfs_sb, uint64_t offset_blk, uint64_t offset_byte);
 
+void hashfs_save_sb(struct super_block *sb);
+
 #endif /*__KHASHFS_H__*/
+
+// helpers
+
+#define HASH_SLOT(name, len, slot_num) xxh32(name, len, 0) / slot_num
+#define HAS_BIT(byte, bit_idx) (byte >> (7 - bit_idx)) & 0b1
+// #define L(...) printk(KERN_DEBUG ##args);
+#define READ_BYTES(sb, bh, byte_ptr, blk, byte) \
+    bh = sb_bread(sb, blk + byte / sb->s_blocksize); \
+    BUG_ON(!bh); \
+    byte_ptr = bh->b_data; \
+    byte_ptr += byte % sb->s_blocksize;    
