@@ -33,50 +33,47 @@ static inline int hashfs_add_nondir(struct dentry *dentry, struct inode *inode)
 	
 }
 
-struct inode *hashfs_new_inode(struct inode *dir, umode_t mode,
-			     const struct qstr *qstr)
+struct inode *hashfs_new_inode(struct inode *dir, umode_t mode)
 {
 	struct super_block *sb;
-	ino_t ino = 0;
 	struct inode * inode;
-	struct hashfs_superblock *es;
 	int err;
+	struct hashfs_inode *h_inode;
 
 	sb = dir->i_sb;
 	inode = new_inode(sb);
 	if (!inode)
 		return ERR_PTR(-ENOMEM);
 
-	ei = EXT2_I(inode);
-	sbi = EXT2_SB(sb);
-	es = sbi->s_es;
-	
-	inode->i_ino = 2;
+	h_inode = kmem_cache_alloc(hashfs_inode_cache, GFP_KERNEL);
+	h_inode->ino = 2;
+	h_inode->name_size = 8;
+	h_inode->i_links_count = 1;
+
+	inode->i_ino = h_inode->ino;
 	inode->i_blocks = 0;
-	inode->i_mtime = inode->i_atime = inode->i_ctime = current_time(inode);
+	hashfs_fill_inode(sb, inode, h_inode);
 
 	if (insert_inode_locked(inode) < 0) {
-		hashfs_error(sb, "hashfs_new_inode",
-			   "inode number already in use - inode=%lu",
-			   (unsigned long) ino);
+		printk(KERN_DEBUG "hashfs_new_inode OPS");
+		// hashfs_error(sb, "hashfs_new_inode",
+		// 	   "inode number already in use - inode=%lu",
+		// 	   (unsigned long) ino);
 		err = -EIO;
-		goto fail;
+		make_bad_inode(inode);
+		iput(inode);
+		return ERR_PTR(err);
 	}
 
 	mark_inode_dirty(inode);
-	hashfs_debug("allocating inode %lu\n", inode->i_ino);
-	hashfs_preread_inode(inode);
-
 	return inode;
-
 }
 
-static int hashfs_create (struct inode * dir, struct dentry * dentry, umode_t mode, bool excl)
+int hashfs_create (struct inode * dir, struct dentry * dentry, umode_t mode, bool excl)
 {
 	struct inode *inode;
-	int err;
 
-	inode = hashfs_new_inode(dir, mode, &dentry->d_name);
+	inode = hashfs_new_inode(dir, mode);
 	if (IS_ERR(inode))
 		return PTR_ERR(inode);
 
