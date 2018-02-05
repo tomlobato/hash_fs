@@ -80,24 +80,26 @@ void hashfs_put_super(struct super_block *sb) {
 }
 
 void hashfs_save_sb(struct super_block *sb) {
-    struct buffer_head *bh;
-    struct hashfs_superblock *hsb = sb->s_fs_info;
+    // struct buffer_head *bh;
+    // struct hashfs_superblock *hsb = sb->s_fs_info;
 
     printk(KERN_DEBUG "hashfs_save_sb\n");
 
-    bh = sb_bread(sb, HASHFS_SUPERBLOCK_BLOCK_NO);
-    BUG_ON(!bh);
+    // bh = sb_bread(sb, HASHFS_SUPERBLOCK_BLOCK_NO);
+    // BUG_ON(!bh);
 
-    bh->b_data = (char *)hsb;
-    mark_buffer_dirty(bh);
-    sync_dirty_buffer(bh);
-    brelse(bh);
+    // bh->b_data = (char *)hsb;
+    // mark_buffer_dirty(bh);
+    // sync_dirty_buffer(bh);
+    // brelse(bh);
 }
 
 int hashfs_statfs (struct dentry * dentry, struct kstatfs * buf)
 {
 	struct hashfs_superblock *hs = dentry->d_sb->s_fs_info;
 	u64 fsid;
+
+    printk(KERN_DEBUG "hashfs_statfs dentry=%p\n", dentry);
 
 	buf->f_type = HASHFS_MAGIC;
 	buf->f_bsize = hs->blocksize;

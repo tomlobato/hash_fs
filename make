@@ -8,12 +8,11 @@ mntp = "/mnt"
 
 cmds = <<CMDS
 
-    [ -z "`grep -v #{dev} /proc/mounts`" ] || sudo umount #{dev}
-    [ -z "`grep -v #{mod} /proc/modules`" ] || sudo rmmod #{mod}
-
     cd kmod && make clean && make
     cd util && make clean && make
 
+    [ -z "`grep #{dev} /proc/mounts`" ] || sudo umount #{dev}
+    [ -z "`grep #{mod} /proc/modules`" ] || sudo rmmod #{mod}
     sudo insmod kmod/#{mod}.ko
     sudo mount -t #{mod} #{dev} #{mntp}
 
@@ -35,37 +34,25 @@ class Maker
     def splitc cmds
         cmds
             .split(/\n/)
+            .map(&:strip)
             .reject(&:empty?)
             .reject(&:nil?)
             .compact
-            .map(&:strip)
     end
 
     def run cmd, is_remote: false, die: false, vain: true
         puts cmd.cyan
-        # print "#{is_remote ? 'remote' : 'local'}: #{cmd} "
 
-        output = if is_remote
-            `#{remote}"#{cmd}" 2>&1`
-        else
-            `#{cmd} 2>&1`
-        end
+        output = `#{cmd} 2>&1`
 
         if $?.to_i == 0
             puts output if vain && !output.empty?
-            # puts 'success'.green
-            true
         else
-            puts output.red if !output.empty?
-            # puts 'error'.red
+            puts output if !output.empty?
             exit if die
-            false
         end
     end
-    
-    def section text
-        puts "\n-----> #{text}".cyan
-    end
 end
+
 Maker.new.make cmds
 

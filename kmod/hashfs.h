@@ -9,6 +9,8 @@
 static const uint64_t HASHFS_ROOTDIR_INODE_NO = 1;
 static const uint64_t HASHFS_SUPERBLOCK_BLOCK_NO = 0;
 
+extern struct mutex hashfs_sb_lock;
+
 struct hashfs_superblock {
     uint64_t version;
     uint64_t magic;
