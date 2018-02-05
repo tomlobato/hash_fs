@@ -43,11 +43,13 @@
         // ".vscode": true,
         "**/*.ko": true,
         "**/.smbdelete*": true,
-        "**/*.hashfs": true,
         "**/Module.symvers": true,
         "lib/test": true,
         "**/._*": true,
         "tempCodeRunnerFile": true,
+        "util/mkfs": true,
+        "util/debugfs": true,
+        "util/fsck": true,
         "a.out": true
     }
 }

@@ -294,37 +294,43 @@ struct dentry *hashfs_lookup(struct inode *dir,
     sb = dir->i_sb;
     hs = sb->s_fs_info;
 
-    hash_slot = HASH_SLOT(dentry->d_name.name, 
-                            dentry->d_name.len, hs->hash_len);
+    // hash_slot = HASH_SLOT(dentry->d_name.name, 
+    //                         dentry->d_name.len, hs->hash_len);
 
-    READ_BYTES(sb, bh_bitm, bitm_byte, 
-                hs->bitmap_offset_blk, hash_slot / 8);
+    // READ_BYTES(sb, bh_bitm, bitm_byte, 
+    //             hs->bitmap_offset_blk, hash_slot / 8);
 
-    if (HAS_BIT(*bitm_byte, hash_slot % 8)) {
-        READ_BYTES(sb, bh_hash, hash_key_ptr, 
-                    hs->hash_offset_blk, hash_slot * hs->hash_slot_size);
-        memcpy(&inode_offset_byte, hash_key_ptr, hs->hash_slot_size);
+    // if (HAS_BIT(*bitm_byte, hash_slot % 8)) {
+    //     READ_BYTES(sb, bh_hash, hash_key_ptr, 
+    //                 hs->hash_offset_blk, hash_slot * hs->hash_slot_size);
+    //     memcpy(&inode_offset_byte, hash_key_ptr, hs->hash_slot_size);
 
-        if (inode_offset_byte) {
+    //     if (inode_offset_byte) {
             inode = new_inode(sb);
             if (!inode) {
                 printk(KERN_ERR "Cannot create new inode. No memory.\n");
-                goto leave;
-            }
-            READ_BYTES(sb, bh_ino, h_inode, 
-                hs->inodes_offset_blk, inode_offset_byte);
+				if (bh_bitm != NULL) brelse(bh_bitm);
+				if (bh_hash != NULL) brelse(bh_hash);
+				if (bh_ino != NULL) brelse(bh_ino);
+                // goto leave;
+            } 
+            // READ_BYTES(sb, bh_ino, h_inode, 
+            //     hs->inodes_offset_blk, inode_offset_byte);
+			h_inode = kmem_cache_alloc(hashfs_inode_cache, GFP_KERNEL);
+			h_inode->ino = 2;
             hashfs_fill_inode(sb, inode, h_inode);
-        }
-    }
+        // }
+    // }
 
-    d_add(dentry, inode);
+    // d_add(dentry, inode);
 
-leave:
+// leave:
     if (bh_bitm != NULL) brelse(bh_bitm);
     if (bh_hash != NULL) brelse(bh_hash);
     if (bh_ino != NULL) brelse(bh_ino);
 
-    return dentry;
+    // return dentry;
+	return d_splice_alias(inode, dentry);
 }
 
 void hashfs_save_hashfs_inode(struct super_block *sb,
