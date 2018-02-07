@@ -1,6 +1,5 @@
 #include "k_hashfs.h"
 
-
 static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
     struct inode *root_inode;
     struct hashfs_inode *root_hashfs_inode;
@@ -16,20 +15,13 @@ static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
     bh->b_data += HASHFS_SB_OFFSET_BYTE;
     hashfs_sb = (struct hashfs_superblock *)bh->b_data;
 
-    printk(KERN_DEBUG "hashfs_fill_super: uuid=%d\n", *hashfs_sb->uuid);
-    printk(KERN_DEBUG "hashfs_fill_super: blocksize=%llu\n", hashfs_sb->blocksize);
-
     if (unlikely(hashfs_sb->magic != HASHFS_MAGIC)) {
-        printk(KERN_ERR
-               "The filesystem being mounted is not of type hashfs. "
-               "Magic number mismatch: %llu != %llu\n",
-               hashfs_sb->magic, (uint64_t)HASHFS_MAGIC);
+        printk(KERN_ERR "Magic number mismatch: %llu != %llu..\n", hashfs_sb->magic, (uint64_t)HASHFS_MAGIC);
         goto release;
     }
+
     if (unlikely(sb->s_blocksize != hashfs_sb->blocksize)) {
-        printk(KERN_ERR
-               "hashfs seem to be formatted with mismatching blocksize: %lu\n",
-               sb->s_blocksize);
+        printk(KERN_ERR "Hashfs seem to be formatted with mismatching blocksize: %lu\n", sb->s_blocksize);
         goto release;
     }
 
@@ -63,16 +55,8 @@ release:
 struct dentry *hashfs_mount(struct file_system_type *fs_type,
                              int flags, const char *dev_name,
                              void *data) {
-    struct dentry *ret;
     printk(KERN_DEBUG "hashfs_mount\n");
-    ret = mount_bdev(fs_type, flags, dev_name, data, hashfs_fill_super);
-    printk(KERN_DEBUG "hashfs_mount ret=%p\n", ret);
-	return ret;
-}
-
-void hashfs_put_super(struct super_block *sb) {
-    printk(KERN_DEBUG "hashfs_put_super\n");
-    return;
+    return mount_bdev(fs_type, flags, dev_name, data, hashfs_fill_super);
 }
 
 void hashfs_save_sb(struct super_block *sb) {
@@ -89,9 +73,6 @@ void hashfs_save_sb(struct super_block *sb) {
 
     ptr = (void *)bh->b_data +
             HASHFS_SB_OFFSET_BYTE;
-
-    // printk(KERN_DEBUG "%llu %p %d\n", (long long unsigned)bh->b_data, bh->b_data, HASHFS_SB_OFFSET_BYTE);
-    // print_hsb("hashfs_save_sb", h_sb);
  
     memcpy(ptr, h_sb, sizeof(struct hashfs_superblock));
 
@@ -123,3 +104,8 @@ int hashfs_statfs (struct dentry * dentry, struct kstatfs * buf)
 
 	return 0;
 }
+
+void hashfs_put_super(struct super_block *sb) {
+    printk(KERN_DEBUG "hashfs_put_super\n");
+}
+

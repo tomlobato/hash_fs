@@ -59,6 +59,7 @@ struct hashfs_inode {
 	uint8_t deleted;	
 	uint32_t i_flags;	/* File flags */
     uint64_t ino;
+    uint8_t last_in_block;
     uint32_t block; 
     file_size size;  // max file size: 2**32 * blocksize (16 TB for 4K blocks)
     filename_size name_size; // max 255

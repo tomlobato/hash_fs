@@ -14,21 +14,7 @@
 #include <uuid/uuid.h>
 
 int main(int arc, char **argv){
-    int *p;
-    char *x;
-    
-    p = malloc(sizeof(int) * 10);
-    memcpy(p, "abc", 3);
-    x = (char *)p;
-
-    printf("%p\n", p);
-    printf("%p\n", p + 2);
-
-    printf("%p\n", x);
-    printf("%p\n", x + 2);
-
-    // printf("%p\n", &x);
-    printf("%c\n", *(x+2));
+    printf("%d\n", 128 >> 7);
 
     return 0;
 }

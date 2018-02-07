@@ -18,7 +18,15 @@ cmds = <<CMDS
 
     sudo insmod kmod/#{mod}.ko
     sudo mount -t #{mod} #{dev} #{mntp}
-    ls #{mntp}
+
+    # ls #{mntp}
+    # touch #{mntp}/x7x7x7
+    # ls #{mntp}/x7x7x7
+
+    # sudo umount #{dev}
+
+    # sudo mount -t #{mod} #{dev} #{mntp}
+    # ls #{mntp}/x7x7x7
 
 CMDS
 
