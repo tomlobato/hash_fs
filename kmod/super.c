@@ -2,23 +2,19 @@
 
 
 static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
-    
     struct inode *root_inode;
     struct hashfs_inode *root_hashfs_inode;
     struct buffer_head *bh;
     struct hashfs_superblock *hashfs_sb;
     int ret = 0;    
-    void *ptr;
 
     printk(KERN_DEBUG "hashfs_fill_super: data=%s\n", (char *)data);
 
     bh = sb_bread(sb, HASHFS_SUPERBLOCK_BLOCK_NO);
     BUG_ON(!bh);
 
-    ptr = bh->b_data;
-
-    ptr += HASHFS_SB_OFFSET_BYTE;
-    hashfs_sb = (struct hashfs_superblock *)ptr;
+    bh->b_data += HASHFS_SB_OFFSET_BYTE;
+    hashfs_sb = (struct hashfs_superblock *)bh->b_data;
 
     printk(KERN_DEBUG "hashfs_fill_super: uuid=%d\n", *hashfs_sb->uuid);
     printk(KERN_DEBUG "hashfs_fill_super: blocksize=%llu\n", hashfs_sb->blocksize);
@@ -80,18 +76,28 @@ void hashfs_put_super(struct super_block *sb) {
 }
 
 void hashfs_save_sb(struct super_block *sb) {
-    // struct buffer_head *bh;
-    // struct hashfs_superblock *hsb = sb->s_fs_info;
+    struct buffer_head *bh;
+    struct hashfs_superblock *h_sb;
+    void *ptr;
 
     printk(KERN_DEBUG "hashfs_save_sb\n");
 
-    // bh = sb_bread(sb, HASHFS_SUPERBLOCK_BLOCK_NO);
-    // BUG_ON(!bh);
+    h_sb = sb->s_fs_info;
 
-    // bh->b_data = (char *)hsb;
-    // mark_buffer_dirty(bh);
-    // sync_dirty_buffer(bh);
-    // brelse(bh);
+    bh = sb_bread(sb, HASHFS_SUPERBLOCK_BLOCK_NO);
+    BUG_ON(!bh);
+
+    ptr = (void *)bh->b_data +
+            HASHFS_SB_OFFSET_BYTE;
+
+    // printk(KERN_DEBUG "%llu %p %d\n", (long long unsigned)bh->b_data, bh->b_data, HASHFS_SB_OFFSET_BYTE);
+    // print_hsb("hashfs_save_sb", h_sb);
+ 
+    memcpy(ptr, h_sb, sizeof(struct hashfs_superblock));
+
+    mark_buffer_dirty(bh);
+    sync_dirty_buffer(bh);
+    brelse(bh);
 }
 
 int hashfs_statfs (struct dentry * dentry, struct kstatfs * buf)

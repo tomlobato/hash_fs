@@ -56,7 +56,7 @@ struct hashfs_inode {
 	uint32_t i_ctime;	/* Creation time */
 	uint32_t i_mtime;	/* Modification time */
 	uint16_t i_gid;		/* Low 16 bits of Group Id */
-	uint16_t i_links_count;	/* Links count */
+	uint8_t deleted;	
 	uint32_t i_flags;	/* File flags */
     uint64_t ino;
     uint32_t block; 

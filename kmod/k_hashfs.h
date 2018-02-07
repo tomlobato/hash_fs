@@ -71,6 +71,9 @@ void hashfs_save_sb(struct super_block *sb);
 
 // helpers
 
+void print_hsb(char *point, struct hashfs_superblock * h_sb);
+void print_h_inode(char *point, struct hashfs_inode * ino);
+
 #define HASH_SLOT(name, len, slot_num) xxh32(name, len, 0) / slot_num
 
 #define HAS_BIT(byte, bit_idx) (byte >> (7 - bit_idx)) & 0b1

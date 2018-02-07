@@ -4,7 +4,7 @@ require 'colorize'
 
 mod = "hashfs"
 dev = "/dev/sdb"
-mntp = "/mnt"
+mntp = "/mnt/storage"
 
 cmds = <<CMDS
 
@@ -13,9 +13,11 @@ cmds = <<CMDS
 
     [ -z "`grep #{dev} /proc/mounts`" ] || sudo umount #{dev}
     [ -z "`grep #{mod} /proc/modules`" ] || sudo rmmod #{mod}
+
+    ./util/mkfs #{dev} > /dev/null
+
     sudo insmod kmod/#{mod}.ko
     sudo mount -t #{mod} #{dev} #{mntp}
-
     ls #{mntp}
 
 CMDS
@@ -25,7 +27,7 @@ CMDS
 class Maker
     def make cmds
         splitc(cmds).each do |cmd|
-            run cmd, die: true
+            run cmd
         end
     end
 
@@ -37,10 +39,11 @@ class Maker
             .map(&:strip)
             .reject(&:empty?)
             .reject(&:nil?)
+            .reject{|l| l =~ /^s*#/ }
             .compact
     end
 
-    def run cmd, is_remote: false, die: false, vain: true
+    def run cmd, is_remote: false, die: true, vain: true
         puts cmd.cyan
 
         output = `#{cmd} 2>&1`
@@ -49,6 +52,7 @@ class Maker
             puts output if vain && !output.empty?
         else
             puts output if !output.empty?
+            puts "error".red
             exit if die
         end
     end
