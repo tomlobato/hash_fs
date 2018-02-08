@@ -81,8 +81,7 @@ void print_h_inode(char *point, struct hashfs_inode * ino);
 #define READ_BYTES(sb, bh, byte_ptr, blk, byte) \
     bh = sb_bread(sb, blk + byte / sb->s_blocksize); \
     BUG_ON(!bh); \
-    byte_ptr = (void *)bh->b_data; \
-    byte_ptr += byte % sb->s_blocksize;    
+    byte_ptr = (void *)bh->b_data + byte % sb->s_blocksize;
 
 static inline struct hashfs_superblock *HASHFS_SB(struct super_block *sb) {
     return sb->s_fs_info;

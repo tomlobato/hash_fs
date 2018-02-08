@@ -75,7 +75,6 @@ void print_h_inode(char *point, struct hashfs_inode * ino){
     printk(KERN_DEBUG "h_inode size \t %u \n", ino->size);
     printk(KERN_DEBUG "h_inode name_size \t %u \n", ino->name_size);         // bytes
 
-    printk(KERN_DEBUG "h_inode name \t %p \n", ino->name);
     printk(KERN_DEBUG "h_inode next \t %llu\n", ino->next);
 }
 

@@ -49,6 +49,8 @@ struct hashfs_superblock {
 typedef uint8_t filename_size;
 typedef uint32_t file_size;
 
+// On disk the name chars are saved right after the inode data
+
 struct hashfs_inode {
     uint16_t i_mode;	/* File mode */
 	uint16_t i_uid;		/* Low 16 bits of Owner Uid */
@@ -63,8 +65,6 @@ struct hashfs_inode {
     uint32_t block; 
     file_size size;  // max file size: 2**32 * blocksize (16 TB for 4K blocks)
     filename_size name_size; // max 255
-    char *name; // the inode struct has only the pointer to the name, 
-                // but on disk the name chars are saved right after the inode data
     uint64_t next; // pointer to the next inode in the hash bucket (linked list)
 };
 

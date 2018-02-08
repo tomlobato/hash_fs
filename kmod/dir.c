@@ -8,7 +8,7 @@ int hashfs_readdir(struct file *file, struct dir_context *ctx) {
     struct hashfs_inode *h_inode;
     struct hashfs_superblock *hsb;
     struct inode *inode;
-    uint64_t blk;
+    int64_t blk;
     uint64_t file_count;
     void *ptr;
     char *name;
