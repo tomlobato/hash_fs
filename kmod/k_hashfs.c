@@ -30,19 +30,19 @@ const struct file_operations hashfs_file_operations = {
     .write = hashfs_write,
 };
 
-// struct kmem_cache *hashfs_inode_cache = NULL;
+struct kmem_cache *hashfs_inode_cache = NULL;
 
 static int __init onload(void) {
     int ret;
 
-    // hashfs_inode_cache = kmem_cache_create("hashfs_inode_cache",
-    //                                      sizeof(struct hashfs_inode),
-    //                                      0,
-    //                                      (SLAB_RECLAIM_ACCOUNT| SLAB_MEM_SPREAD),
-    //                                      NULL);
-    // if (!hashfs_inode_cache) {
-    //     return -ENOMEM;
-    // }
+    hashfs_inode_cache = kmem_cache_create("hashfs_inode_cache",
+                                         sizeof(struct hashfs_inode),
+                                         0,
+                                         (SLAB_RECLAIM_ACCOUNT| SLAB_MEM_SPREAD),
+                                         NULL);
+    if (!hashfs_inode_cache) {
+        return -ENOMEM;
+    }
 
     ret = register_filesystem(&hashfs_fs_type);
 
@@ -59,7 +59,7 @@ static void __exit onunload(void) {
     int ret;
 
     ret = unregister_filesystem(&hashfs_fs_type);
-    // kmem_cache_destroy(hashfs_inode_cache);
+    kmem_cache_destroy(hashfs_inode_cache);
 
     if (likely(ret == 0)) {
         printk(KERN_INFO "Sucessfully unregistered hashfs\n");

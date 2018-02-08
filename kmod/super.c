@@ -7,7 +7,7 @@ static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
     struct hashfs_superblock *hashfs_sb;
     int ret = 0;    
 
-    printk(KERN_DEBUG "hashfs_fill_super: data=%s\n", (char *)data);
+    deb("hashfs_fill_super: data=%s\n", (char *)data);
 
     bh = sb_bread(sb, HASHFS_SUPERBLOCK_BLOCK_NO);
     BUG_ON(!bh);
@@ -30,9 +30,8 @@ static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
     sb->s_maxbytes = hashfs_pow(2, 8 * sizeof(file_size)) * hashfs_sb->blocksize;
     sb->s_op = &hashfs_sb_ops;
 
-    root_hashfs_inode = kmalloc(sizeof(struct hashfs_inode), GFP_KERNEL);
+    root_hashfs_inode = kmem_cache_alloc(hashfs_inode_cache, GFP_KERNEL);    
 
-    // root_hashfs_inode = kmem_cache_alloc(hashfs_inode_cache, GFP_KERNEL);    
     root_hashfs_inode->ino = HASHFS_ROOTDIR_INODE_NO;
 
     root_inode = new_inode(sb);
@@ -50,8 +49,7 @@ static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
     }
 
 release:
-    // kmem_cache_free(hashfs_inode_cache, root_hashfs_inode);
-    kfree(root_hashfs_inode);
+    kmem_cache_free(hashfs_inode_cache, root_hashfs_inode);
     brelse(bh);
     return ret;
 }
@@ -59,7 +57,7 @@ release:
 struct dentry *hashfs_mount(struct file_system_type *fs_type,
                              int flags, const char *dev_name,
                              void *data) {
-    printk(KERN_DEBUG "hashfs_mount\n");
+    deb("hashfs_mount\n");
     return mount_bdev(fs_type, flags, dev_name, data, hashfs_fill_super);
 }
 
@@ -68,9 +66,9 @@ void hashfs_save_sb(struct super_block *sb) {
     struct hashfs_superblock *h_sb;
     void *ptr;
 
-    printk(KERN_DEBUG "hashfs_save_sb\n");
+    deb("hashfs_save_sb\n");
 
-    h_sb = sb->s_fs_info;
+    h_sb = HASHFS_SB(sb);
 
     bh = sb_bread(sb, HASHFS_SUPERBLOCK_BLOCK_NO);
     BUG_ON(!bh);
@@ -87,10 +85,10 @@ void hashfs_save_sb(struct super_block *sb) {
 
 int hashfs_statfs (struct dentry * dentry, struct kstatfs * buf)
 {
-	struct hashfs_superblock *hs = dentry->d_sb->s_fs_info;
+	struct hashfs_superblock *hs = HASHFS_SB(dentry->d_sb);
 	u64 fsid;
 
-    printk(KERN_DEBUG "hashfs_statfs dentry=%p\n", dentry);
+    deb("hashfs_statfs dentry=%p\n", dentry);
 
 	buf->f_type = HASHFS_MAGIC;
 	buf->f_bsize = hs->blocksize;
@@ -110,6 +108,6 @@ int hashfs_statfs (struct dentry * dentry, struct kstatfs * buf)
 }
 
 void hashfs_put_super(struct super_block *sb) {
-    printk(KERN_DEBUG "hashfs_put_super\n");
+    deb("hashfs_put_super\n");
 }
 

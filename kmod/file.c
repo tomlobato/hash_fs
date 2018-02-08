@@ -5,7 +5,7 @@ ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len,
     char *buffer;
     int nbytes;
 
-    printk(KERN_DEBUG "hashfs_read\n");
+    deb("hashfs_read\n");
 
     buffer = "abc123\n";
     nbytes = strlen(buffer);
@@ -32,7 +32,7 @@ ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len,
 
 ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len,
                       loff_t *ppos) {
-    printk(KERN_DEBUG "hashfs_write %.*s\n", (int)len, buf);
+    deb("hashfs_write %.*s\n", (int)len, buf);
     return len;
     // return 0;
 }
