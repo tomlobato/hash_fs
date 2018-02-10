@@ -62,13 +62,8 @@ class Maker
 
     def run cmd, is_remote: false, die: true, vain: true
         puts cmd.cyan
-
-        output = `#{cmd} 2>&1`
-
-        if $?.to_i == 0
-            puts output if vain && !output.empty?
-        else
-            puts output if !output.empty?
+        system cmd
+        if $?.to_i != 0
             puts "error".red
             exit if die
         end

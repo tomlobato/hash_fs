@@ -51,8 +51,6 @@ void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
 long long hashfs_pow(long long x, long long y);
 void hashfs_save_sb(struct super_block *sb);
 
-#endif /*__KHASHFS_H__*/
-
 extern struct kmem_cache *hashfs_inode_cache;
 
 // helpers
@@ -62,7 +60,7 @@ void print_h_inode(char *point, struct hashfs_inode * ino);
 
 #define HASH_SLOT(name, len, slot_num) xxh32(name, len, 0) / slot_num
 
-#define HAS_BIT(byte, bit_idx) (byte >> (7 - bit_idx)) & 0b1
+#define HAS_BIT(byte, bit_idx) (byte >> (BITS_IN_BYTE - 1 - bit_idx)) & 0b1
 
 #define READ_BYTES(sb, bh, byte_ptr, blk, byte) \
     bh = sb_bread(sb, blk + byte / sb->s_blocksize); \
@@ -76,4 +74,6 @@ void print_h_inode(char *point, struct hashfs_inode * ino);
 static inline struct hashfs_superblock *HASHFS_SB(struct super_block *sb) {
     return sb->s_fs_info;
 }
+
+#endif /*__KHASHFS_H__*/
 

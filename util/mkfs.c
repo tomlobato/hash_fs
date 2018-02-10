@@ -74,7 +74,7 @@ int get_hash_slot_size(uint64_t inode_count){
 
 int get_avg_full_inode_size(){
     return sizeof(struct hashfs_inode) +
-           sizeof(filename_size) / 4; // TODO: Elaborate this criteria 
+           pow(2, 8 * sizeof(filename_size)) / 4; // TODO: Elaborate this criteria 
 }
 
 void setup_sb(struct hashfs_superblock *sb, struct sb_settings *settings, char *dev_file){

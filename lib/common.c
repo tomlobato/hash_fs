@@ -283,7 +283,58 @@ char *get_bin_path(char *argv0) {
     }
 }
 
-int get_words(char *fileName) {
+int get_lines2(char *fileName, void *pvt, void *pvt2, void(*func)(char *, void *, void *)) {
+    FILE *fp;
+    long rest;
+    char *buf,
+         *word;
+    int buf_len,
+        wsize,
+        did_read;
+
+    fp = fopen(fileName, "r");
+    fseek(fp, 0, SEEK_END);
+    rest = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    wsize = -1;
+    word = malloc(sizeof(char) * 1024);
+    buf_len = 4096;    
+    buf = malloc(buf_len);
+
+    if (rest == 0)
+        return 0;
+
+    while (rest > 0) {
+        did_read = fread(buf, 1, buf_len, fp);
+        if (did_read != buf_len && ferror(fp)) {
+            perror("fread");
+            exit(1);
+        }
+        rest -= did_read;
+
+        for(int i = 0; i < did_read; i++) {
+            word[++wsize] = buf[i];
+            if (word[wsize] == '\n') {
+                word[wsize] = '\0';
+                wsize = -1;
+                (*func)(word, pvt, pvt2);
+            }
+        }
+    }
+
+    if (buf[did_read - 1] != '\n') {
+        word[wsize + 1] = '\0';
+    }
+
+    if (buf != NULL) free(buf);
+    if (word != NULL) free(word);
+
+    return 0;
+}
+
+
+int get_words(char *fileName, void *pvt, void *pvt2, void(*func)(char *, void *, void *)) {
     int fd;
     char *line;
     char *word;
@@ -296,17 +347,16 @@ int get_words(char *fileName) {
     while (read(fd, line, 512)) {
         word = strtok(line, sep);
         while (word != NULL) {
-            printf("%s\n", word);
+            (*func)(word, pvt, pvt2);
             word = strtok(NULL, sep);
         }
     }
 
-    close(fd);    
-
+    close(fd);
     return 0;
 }
 
-int get_lines(char *fileName) {
+int get_lines(char *fileName, void(*func)(char *)) {
     FILE *file;
     char *str;
     
@@ -316,6 +366,7 @@ int get_lines(char *fileName) {
     while (fgets(str, 512, file)) {
         str[511] = 0;
         printf("%s\n", str);
+        (*func)(str);
     }
 
     fclose(file);    

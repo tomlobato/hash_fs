@@ -5,12 +5,8 @@ void hashfs_fill_root(struct super_block *sb, struct inode *inode,
 
     deb("hashfs_fill_root ino=%llu %p %p\n", h_inode->ino, sb, inode);
 
-    inode->i_size = 0;
     inode->i_fop = &hashfs_dir_operations;
     inode->i_mode = HASHFS_DEFAULT_MODE_DIR;
-    inode->i_atime = inode->i_mtime 
-                   = inode->i_ctime
-                   = CURRENT_TIME;
 }
 
 void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
@@ -23,21 +19,20 @@ void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
     inode->i_private = h_inode;
     inode->i_op = &hashfs_inode_ops;
 
+    inode->i_blocks = h_inode->size / sb->s_blocksize + (h_inode->size % sb->s_blocksize ? 1 : 0);
+    inode->i_bytes = h_inode->size;
+    inode->i_size = sb->s_blocksize * inode->i_blocks;
+
+    inode->i_atime = inode->i_mtime 
+                   = inode->i_ctime
+                   = CURRENT_TIME;
+
     if (h_inode->ino == HASHFS_ROOTDIR_INODE_NO) {
         hashfs_fill_root(sb, inode, h_inode);
         return;
     }
 
     inode->i_fop = &hashfs_file_operations;
-
-    inode->i_atime = inode->i_mtime 
-                   = inode->i_ctime
-                   = CURRENT_TIME;
-
-    inode->i_blocks = h_inode->size / sb->s_blocksize;
-    inode->i_bytes = h_inode->size;
-    inode->i_size = h_inode->size + 7;
-
     inode->i_mode = HASHFS_DEFAULT_MODE_FILE;
 }
 
@@ -66,20 +61,9 @@ int hashfs_save_inode(struct super_block *sb, struct hashfs_inode *h_inode, cons
 }
 
 void hashfs_init_inode(struct hashfs_inode *h_inode){
-    h_inode->i_mode = 0;
-	h_inode->i_uid = 0;
-	h_inode->i_atime = 0;
-	h_inode->i_ctime = 0;
-	h_inode->i_mtime = 0;
-	h_inode->i_gid = 0;
-	h_inode->deleted = 0;
-	h_inode->i_flags = 0;
-    h_inode->ino = 0;
-    h_inode->last_in_block = 0;
-    h_inode->block = 0;
-    h_inode->size = 0;
-    h_inode->name_size = 0;
-    h_inode->next = 0;
+    void *z = kcalloc(1, sizeof(struct hashfs_inode), GFP_KERNEL);
+    memcpy(h_inode, z, sizeof(struct hashfs_inode));
+    kfree(z);
 }
 
 int hashfs_save(struct super_block *sb, struct inode *inode, struct dentry * dentry, umode_t mode){
@@ -97,7 +81,6 @@ int hashfs_save(struct super_block *sb, struct inode *inode, struct dentry * den
     h_sb = HASHFS_SB(sb);
 
     h_inode = kmem_cache_alloc(hashfs_inode_cache, GFP_KERNEL);
-
     hashfs_init_inode(h_inode);
     h_inode->ino = h_sb->next_ino;
     h_inode->name_size = dentry->d_name.len;
@@ -109,7 +92,7 @@ int hashfs_save(struct super_block *sb, struct inode *inode, struct dentry * den
     READ_BYTES(sb, bh_bitmap, ptr_bitmap, 
         h_sb->bitmap_offset_blk, hash_slot / BITS_IN_BYTE);
 
-    has_bit = test_bit(7 - (hash_slot % 8), (volatile long unsigned int *)ptr_bitmap);
+    has_bit = test_bit(7 - (hash_slot % BITS_IN_BYTE), (volatile long unsigned int *)ptr_bitmap);
 
     // hash
     READ_BYTES(sb, bh_hkey, ptr_hash_key, 
@@ -129,7 +112,7 @@ int hashfs_save(struct super_block *sb, struct inode *inode, struct dentry * den
         brelse(bh_hkey);
 
         // save bitmap
-        test_and_set_bit(7 - (hash_slot % 8), (volatile long unsigned int *)ptr_bitmap);
+        test_and_set_bit(7 - (hash_slot % BITS_IN_BYTE), (volatile long unsigned int *)ptr_bitmap);
 
         mark_buffer_dirty(bh_bitmap);
         sync_dirty_buffer(bh_bitmap);
@@ -217,7 +200,7 @@ struct dentry *hashfs_lookup(struct inode *dir,
     READ_BYTES(sb, bh_bitm, bitm_byte, 
                 h_sb->bitmap_offset_blk, hash_slot / BITS_IN_BYTE);
 
-    if (HAS_BIT(*bitm_byte, hash_slot % 8)) {
+    if (HAS_BIT(*bitm_byte, hash_slot % BITS_IN_BYTE)) {
         // hash
         READ_BYTES(sb, bh_hash, hash_key_ptr, 
                     h_sb->hash_offset_blk, hash_slot * h_sb->hash_slot_size);
@@ -244,6 +227,6 @@ leave:
 }
 
 void hashfs_destroy_inode(struct inode *inode) {
-    deb("hashfs_destroy_inode\n");
+    deb("hashfs_destroy_inode %lu \n", inode->i_ino);
     return;
 }
