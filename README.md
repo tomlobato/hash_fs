@@ -1,4 +1,4 @@
-HashFs is a [flat filesystem](https://en.wikipedia.org/wiki/File_system#Flat_file_systems) written for learning purpouses 
+HashFs is a [flat filesystem](https://en.wikipedia.org/wiki/File_system#Flat_file_systems) written for learning purposes 
 with a specific use case in mind:
 
 - store a huge number of files,
