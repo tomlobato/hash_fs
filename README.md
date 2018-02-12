@@ -5,10 +5,10 @@ with a specific use case in mind:
 - many (milions) creat\`s, few unlink\`s,
 - fast file lookup.
   
-calcs:
-https://docs.google.com/spreadsheets/d/1HkgOJFZwWhxS5sdxalrPe4urQfaviGriIXZLOjGbrfY/edit#gid=0
-
-Disk Layout
+## Disk Layout
 
 blk 0 / byte 1024    
 superblock -- hash keys bitmap -- inodes bitmap  --  data bitmap  --  hash keys  --  inodes -- data
+
+calcs:
+https://docs.google.com/spreadsheets/d/1HkgOJFZwWhxS5sdxalrPe4urQfaviGriIXZLOjGbrfY/edit#gid=0
