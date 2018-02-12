@@ -2,9 +2,8 @@ HashFs is a [flat filesystem](https://en.wikipedia.org/wiki/File_system#Flat_fil
 with a specific use case in mind:
 
 - store a huge number of files,
-- high creat`s number,
-- low unlink`s,
-- fast lookup.
+- high creat`s, low unlink`s,
+- fast file lookup.
   
 calcs:
 https://docs.google.com/spreadsheets/d/1HkgOJFZwWhxS5sdxalrPe4urQfaviGriIXZLOjGbrfY/edit#gid=0
