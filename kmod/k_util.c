@@ -47,24 +47,17 @@ void print_h_sb(char *point, struct hashfs_superblock * h_sb){
 void print_h_inode(char *point, struct hashfs_inode * ino){
     deb("----------- %s", point);
 
-    deb("h_inode i_mode \t %u\n", ino->i_mode);
-    deb("h_inode i_uid \t %u \n", ino->i_uid);
-    deb("h_inode i_atime \t %u\n", ino->i_atime);
+    deb("h_inode mode_uid_gid_idx \t %u\n", ino->mode_uid_gid_idx);
+    deb("h_inode mtime \t %u\n", ino->mtime);
 
-    deb("h_inode i_ctime \t %u\n", ino->i_ctime); /* 128-bit uuid for volume */
+    deb("h_inode flags \t %u\n", ino->flags);         // bytes
 
-    deb("h_inode i_mtime \t %u\n", ino->i_mtime);
-    deb("h_inode i_gid \t %u\n", ino->i_gid);       // bytes
-
-    deb("h_inode deleted \t %u \n", ino->deleted);
-    deb("h_inode i_flags \t %u\n", ino->i_flags);         // bytes
-
-    deb("h_inode ino \t %llu\n", ino->ino);
+    deb("h_inode ino \t %u\n", ino->ino);
     deb("h_inode block \t %u\n", ino->block);       // bytes
 
     deb("h_inode size \t %u \n", ino->size);
     deb("h_inode name_size \t %u \n", ino->name_size);         // bytes
 
-    deb("h_inode next \t %llu\n", ino->next);
+    deb("h_inode next \t %u\n", ino->next);
 }
 

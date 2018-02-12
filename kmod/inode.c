@@ -3,7 +3,7 @@
 void hashfs_fill_root(struct super_block *sb, struct inode *inode,
                         struct hashfs_inode *h_inode) {
 
-    deb("hashfs_fill_root ino=%llu %p %p\n", h_inode->ino, sb, inode);
+    deb("hashfs_fill_root ino=%u %p %p\n", h_inode->ino, sb, inode);
 
     inode->i_fop = &hashfs_dir_operations;
     inode->i_mode = HASHFS_DEFAULT_MODE_DIR;
@@ -12,7 +12,7 @@ void hashfs_fill_root(struct super_block *sb, struct inode *inode,
 void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
                         struct hashfs_inode *h_inode) {
 
-    deb("hashfs_fill_inode ino=%llu %p %p\n", h_inode->ino, sb, inode);
+    deb("hashfs_fill_inode ino=%u %p %p\n", h_inode->ino, sb, inode);
 
     inode->i_sb = sb;
     inode->i_ino = h_inode->ino;

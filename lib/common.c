@@ -414,8 +414,8 @@ void print_superblock(struct hashfs_superblock *sb) {
     printf("hash slot size\t%lu Bytes\n\n", 
         sb->hash_slot_size);
 
-    printf("max fname len\t%ld\n", 
-        (long)pow(2, 8 * sizeof(filename_size)));
+    printf("max fname len\t%ld\n",
+        HASHFS_MAX_NAME_LEN);
     printf("max file size\t%.2lf TB\n\n", 
         sb->max_file_size / pow(2, 40));
 

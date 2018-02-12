@@ -90,17 +90,21 @@ void test_error(){
 }
 
 void struct_size(){
-    struct hashfs_inode {
-        uint16_t i_mode;	
-        uint16_t i_uid;		
-        uint16_t i_gid;		
-        uint32_t i_mtime;	
-        uint32_t i_flags;
+    struct y {
+        uint8_t mode_uid_gid_idx;	
+        uint32_t mtime;
+        uint8_t flags;
+        uint32_t ino;
         uint32_t block; 
-        uint32_t blocks;
-        file_size size;
+        uint32_t size;  
+        uint8_t name_size;
+        char *fname[48];
+        uint32_t next;
     };
+
     printf("%lu\n", sizeof(struct hashfs_inode));
+    printf("%lu\n", sizeof(struct y));
+    printf("%lu\n", sizeof(((struct y *)0)->block));
 }
 
 void usage(){

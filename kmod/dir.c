@@ -52,13 +52,13 @@ int hashfs_readdir(struct file *file, struct dir_context *ctx) {
         ptr += h_inode->name_size;
 
         // emit
-        if (!h_inode->deleted) {
-            deb("emiting ino=%llu name_size=%d name=%.*s\n", h_inode->ino, h_inode->name_size, h_inode->name_size, name);
+        if (h_inode->flags ^ HASHFS_INO_FLAG_DELETED) {
+            deb("emiting ino=%u name_size=%d name=%.*s\n", h_inode->ino, h_inode->name_size, h_inode->name_size, name);
             dir_emit(ctx, name, h_inode->name_size, h_inode->ino, ftype);
             ctx->pos += 1;
         }
 
-        if (h_inode->last_in_block) {
+        if (h_inode->flags & HASHFS_INO_FLAG_LAST_IN_BLOCK) {
             read_block = 1;
             blk++;
         }

@@ -27,7 +27,7 @@ static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
 
     sb->s_magic = hashfs_sb->magic;
     sb->s_fs_info = hashfs_sb;
-    sb->s_maxbytes = hashfs_pow(2, 8 * sizeof(file_size)) * hashfs_sb->blocksize;
+    sb->s_maxbytes = hashfs_pow(2, 8 * HASHFS_FILE_SIZE) * hashfs_sb->blocksize;
     sb->s_op = &hashfs_sb_ops;
 
     root_hashfs_inode = kmem_cache_alloc(hashfs_inode_cache, GFP_KERNEL);    
@@ -97,7 +97,7 @@ int hashfs_statfs (struct dentry * dentry, struct kstatfs * buf)
 	buf->f_bavail = buf->f_bfree;
 	buf->f_files = le32_to_cpu(hs->inode_count);
 	buf->f_ffree = hs->inode_count - hs->next_ino;
-	buf->f_namelen = hashfs_pow(2, 8 * sizeof(filename_size));
+	buf->f_namelen = HASHFS_MAX_NAME_LEN;
 
 	fsid = le64_to_cpup((void *)hs->uuid) ^
 	       le64_to_cpup((void *)hs->uuid + sizeof(u64));

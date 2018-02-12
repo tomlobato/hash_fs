@@ -46,25 +46,21 @@ struct hashfs_superblock {
     uint64_t device_size; // bytes
 };
 
-typedef uint8_t filename_size;
-typedef uint32_t file_size;
+#define HASHFS_INO_FLAG_DELETED       1 << 0
+#define HASHFS_INO_FLAG_LAST_IN_BLOCK 1 << 1
 
-// On disk the name chars are saved right after the inode data
 
 struct hashfs_inode {
-    uint16_t i_mode;	/* File mode */
-	uint16_t i_uid;		/* Low 16 bits of Owner Uid */
-	uint32_t i_atime;	/* Access time */
-	uint32_t i_ctime;	/* Creation time */
-	uint32_t i_mtime;	/* Modification time */
-	uint16_t i_gid;		/* Low 16 bits of Group Id */
-	uint8_t deleted;	
-	uint32_t i_flags;	/* File flags */
-    uint64_t ino;
-    uint8_t last_in_block;
+    uint8_t mode_uid_gid_idx;	
+    uint32_t mtime;
+    uint8_t flags;
+    uint32_t ino;
     uint32_t block; 
-    file_size size;  // max file size: 2**32 * blocksize (16 TB for 4K blocks)
-    filename_size name_size; // max 255
-    uint64_t next; // pointer to the next inode in the hash bucket (linked list)
+    uint32_t size;  
+    uint8_t name_size;
+    char name[48];
+    uint32_t next;
 };
 
+#define HASHFS_FILE_SIZE sizeof(((struct hashfs_inode *)0)->size)
+#define HASHFS_MAX_NAME_LEN sizeof(((struct hashfs_inode *)0)->name) - 1

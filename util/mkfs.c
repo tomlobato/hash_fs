@@ -61,20 +61,10 @@ uint64_t get_inode_count(uint64_t block_count){
     return block_count / 4; // TODO: develop a criteria
 }
 
-uint64_t max_inode_size(){
-    return sizeof(struct hashfs_inode) + 
-           sizeof(filename_size);
-}
-
 int get_hash_slot_size(uint64_t inode_count){
     return ceil(
-        log2(inode_count * max_inode_size()) / 8
+        log2(inode_count * sizeof(struct hashfs_inode)) / 8
     );
-}
-
-int get_avg_full_inode_size(){
-    return sizeof(struct hashfs_inode) +
-           pow(2, 8 * sizeof(filename_size)) / 4; // TODO: Elaborate this criteria 
 }
 
 void setup_sb(struct hashfs_superblock *sb, struct sb_settings *settings, char *dev_file){
@@ -92,7 +82,7 @@ void setup_sb(struct hashfs_superblock *sb, struct sb_settings *settings, char *
     // From disk info
     sb->inode_count = get_inode_count(sb->block_count);
     sb->free_inode_count = sb->inode_count - 1;
-    sb->max_file_size = sb->blocksize * pow(2, 8 * sizeof(file_size));
+    sb->max_file_size = sb->blocksize * pow(2, 8 * HASHFS_FILE_SIZE);
     sb->hash_len = next_prime(sb->inode_count * HASHFS_HASH_MODULUS_FACTOR);
 
     //
@@ -113,7 +103,7 @@ void setup_sb(struct hashfs_superblock *sb, struct sb_settings *settings, char *
     // inodes
     sb->inodes_offset_blk = sb->hash_offset_blk + 
                             divceil(sb->hash_size, sb->blocksize);
-    sb->inodes_size = sb->inode_count * get_avg_full_inode_size();
+    sb->inodes_size = sb->inode_count * sizeof(struct hashfs_inode);
 
     // data
     sb->data_offset_blk = sb->inodes_offset_blk + 
