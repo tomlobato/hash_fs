@@ -5,7 +5,7 @@ with a specific use case in mind:
 - many (milions) creat\`s, few unlink\`s,
 - fast file lookup.
   
-## Disk Layout
+#### Disk Layout
 
 blk 0 / byte 1024    
 superblock -- hash keys bitmap -- inodes bitmap  --  data bitmap  --  hash keys  --  inodes -- data
