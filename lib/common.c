@@ -220,9 +220,8 @@ void _hashfs_error(const char *func, int status, int errnum, const char *filenam
     free(msg);
     free(err_msg);
 
-    if (status) {
+    if (status)
         exit(status);
-    }
 }
 
 // String
@@ -415,7 +414,7 @@ void print_superblock(struct hashfs_superblock *sb) {
         sb->hash_slot_size);
 
     printf("max fname len\t%ld\n",
-        HASHFS_MAX_NAME_LEN);
+        HASHFS_NAME_LEN);
     printf("max file size\t%.2lf TB\n\n", 
         sb->max_file_size / pow(2, 40));
 

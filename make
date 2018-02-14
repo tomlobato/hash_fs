@@ -19,14 +19,14 @@ cmds = <<CMDS
     sudo insmod kmod/#{mod}.ko
     sudo mount -t #{mod} #{dev} #{mntp}
 
-    touch /mnt/storage/1234
-    touch /mnt/storage/abcd
-    touch /mnt/storage/xyzk
-    umount /mnt/storage
-    mount /dev/sdb /mnt/storage
-    ls /mnt/storage/1234
-    ls /mnt/storage/abcd
-    ls /mnt/storage/xyzk
+    # touch /mnt/storage/1234
+    # touch /mnt/storage/abcd
+    # touch /mnt/storage/xyzk
+    # umount /mnt/storage
+    # sudo mount -t #{mod} #{dev} #{mntp}
+    # ls /mnt/storage/1234
+    # ls /mnt/storage/abcd
+    # ls /mnt/storage/xyzk
 
     # ls #{mntp}
     # touch #{mntp}/x7x7x7

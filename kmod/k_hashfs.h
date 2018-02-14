@@ -58,18 +58,21 @@ extern struct kmem_cache *hashfs_inode_cache;
 void print_h_sb(char *point, struct hashfs_superblock * h_sb);
 void print_h_inode(char *point, struct hashfs_inode * ino);
 
-#define HASH_SLOT(name, len, slot_num) xxh32(name, len, 0) / slot_num
+#define HASH_SLOT(name, len, slot_num) (xxh32(name, len, 0) / slot_num)
 
-#define HAS_BIT(byte, bit_idx) (byte >> (BITS_IN_BYTE - 1 - bit_idx)) & 0b1
+#define HAS_BIT(byte, bit_idx) ((byte >> (BITS_IN_BYTE - 1 - bit_idx)) & 0b1)
 
 #define READ_BYTES(sb, bh, byte_ptr, blk, byte) \
-    bh = sb_bread(sb, blk + byte / sb->s_blocksize); \
-    BUG_ON(!bh); \
-    byte_ptr = (void *)bh->b_data + byte % sb->s_blocksize;
+    do { \
+        bh = sb_bread(sb, blk + byte / sb->s_blocksize); \
+        BUG_ON(!bh); \
+        byte_ptr = (void *)bh->b_data + byte % sb->s_blocksize; \
+    } while (0)
+
 
 #define BITS_IN_BYTE 8
 
-#define deb(...) printk(KERN_DEBUG __VA_ARGS__);
+#define deb(...);// printk(KERN_DEBUG __VA_ARGS__);
 
 static inline struct hashfs_superblock *HASHFS_SB(struct super_block *sb) {
     return sb->s_fs_info;

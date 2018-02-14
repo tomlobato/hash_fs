@@ -36,12 +36,12 @@ void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
     inode->i_mode = HASHFS_DEFAULT_MODE_FILE;
 }
 
-int hashfs_save_inode(struct super_block *sb, struct hashfs_inode *h_inode, const char *fname, int len){
+int hashfs_save_inode(struct super_block *sb, struct hashfs_inode *h_inode){
     void *ptr_ino;
     struct buffer_head *bh_ino;
     struct hashfs_superblock *h_sb;
 
-    deb("hashfs_save_inode name=%s len=%d\n", fname, len);
+    deb("hashfs_save_inode name=%s len=%d\n", h_inode->name, h_inode->name_size);
 
     h_sb = HASHFS_SB(sb);
 
@@ -51,19 +51,28 @@ int hashfs_save_inode(struct super_block *sb, struct hashfs_inode *h_inode, cons
     memcpy(ptr_ino, h_inode, sizeof(struct hashfs_inode));
 
     ptr_ino += sizeof(struct hashfs_inode);
-    memcpy(ptr_ino, fname, len);
 
     mark_buffer_dirty(bh_ino);
     sync_dirty_buffer(bh_ino);
     brelse(bh_ino);
 
-    return sizeof(struct hashfs_inode) + len;
+    return 0;
 }
 
 void hashfs_init_inode(struct hashfs_inode *h_inode){
     void *z = kcalloc(1, sizeof(struct hashfs_inode), GFP_KERNEL);
     memcpy(h_inode, z, sizeof(struct hashfs_inode));
     kfree(z);
+}
+
+int hashfs_save2(struct super_block *sb, struct inode *inode, struct dentry * dentry, umode_t mode){
+    // hk bitmap
+    // hk
+    // follow bucket linked list
+    // store inode
+    // update inode bitmap
+    // update prev inode or hk/hk bitmap
+    return 0;
 }
 
 int hashfs_save(struct super_block *sb, struct inode *inode, struct dentry * dentry, umode_t mode){
@@ -73,7 +82,6 @@ int hashfs_save(struct super_block *sb, struct inode *inode, struct dentry * den
     struct hashfs_superblock *h_sb;
     uint64_t hash_slot;
     void *ptr_bitmap, *ptr_hash_key;
-    int full_ino_len;
     int ret = 0;
 
     deb("hashfs_create %s dentry=%p\n", dentry->d_name.name, dentry);
@@ -84,6 +92,7 @@ int hashfs_save(struct super_block *sb, struct inode *inode, struct dentry * den
     hashfs_init_inode(h_inode);
     h_inode->ino = h_sb->next_ino;
     h_inode->name_size = dentry->d_name.len;
+    memcpy(h_inode->name, dentry->d_name.name, dentry->d_name.len);
 
     hash_slot = HASH_SLOT(dentry->d_name.name, 
                           dentry->d_name.len, h_sb->hash_len);
@@ -99,7 +108,28 @@ int hashfs_save(struct super_block *sb, struct inode *inode, struct dentry * den
         h_sb->hash_offset_blk, hash_slot * h_sb->hash_slot_size);
 
     if (has_bit) {
-        deb("has_bit\n");        
+        deb("has_bit\n");    
+
+        // while (1) {
+        //     READ_BYTES(sb, bh_ino, h_inode, 
+        //         h_sb->inodes_offset_blk, inode_offset_byte);
+
+        //     if (h_inode->name_size == dentry->d_name.len &&
+        //         strncmp(h_inode->name, dentry->d_name.name, dentry->d_name.len) == 0) {
+        //         deb("1");
+        //         if (h_inode->flags ^ HASHFS_INO_FLAG_DELETED)
+        //             goto set_inode;
+        //         else
+        //             goto leave;
+        //     } else if (h_inode->next == 0) {
+        //         deb("2");
+        //         goto leave;
+        //     } else {
+        //         deb("3");
+        //         inode_offset_byte = h_inode->next;
+        //         brelse(bh_ino);
+        //     }
+        // }    
 
     } else {
         deb("!has_bit\n");
@@ -112,22 +142,19 @@ int hashfs_save(struct super_block *sb, struct inode *inode, struct dentry * den
         brelse(bh_hkey);
 
         // save bitmap
-        test_and_set_bit(7 - (hash_slot % BITS_IN_BYTE), (volatile long unsigned int *)ptr_bitmap);
+        set_bit(7 - (hash_slot % BITS_IN_BYTE), (volatile long unsigned int *)ptr_bitmap);
 
         mark_buffer_dirty(bh_bitmap);
         sync_dirty_buffer(bh_bitmap);
         brelse(bh_bitmap);
     }
 
-    full_ino_len = hashfs_save_inode(sb, h_inode, 
-        dentry->d_name.name, dentry->d_name.len);
-
-    if (full_ino_len < 0) {
-        ret = full_ino_len;
+    if (hashfs_save_inode(sb, h_inode)) {
+        ret = EIO;
         goto release;
     }
 
-    h_sb->next_inode_byte += full_ino_len;
+    h_sb->next_inode_byte += sizeof(struct hashfs_inode);
     h_sb->next_ino++;
     h_sb->free_inode_count--;
 
@@ -199,24 +226,43 @@ struct dentry *hashfs_lookup(struct inode *dir,
     // bitmap
     READ_BYTES(sb, bh_bitm, bitm_byte, 
                 h_sb->bitmap_offset_blk, hash_slot / BITS_IN_BYTE);
+    if (!HAS_BIT(*bitm_byte, hash_slot % BITS_IN_BYTE))
+        goto leave;
 
-    if (HAS_BIT(*bitm_byte, hash_slot % BITS_IN_BYTE)) {
-        // hash
-        READ_BYTES(sb, bh_hash, hash_key_ptr, 
-                    h_sb->hash_offset_blk, hash_slot * h_sb->hash_slot_size);
-        memcpy(&inode_offset_byte, hash_key_ptr, h_sb->hash_slot_size);
+    // hash
+    READ_BYTES(sb, bh_hash, hash_key_ptr, 
+                h_sb->hash_offset_blk, hash_slot * h_sb->hash_slot_size);
+    memcpy(&inode_offset_byte, hash_key_ptr, h_sb->hash_slot_size);
 
-        // inode
+    // inode
+    while (1) {
         READ_BYTES(sb, bh_ino, h_inode, 
             h_sb->inodes_offset_blk, inode_offset_byte);
 
-        inode = new_inode(sb);
-        if (!inode) {
-            printk(KERN_ERR "Cannot create new inode. No memory.\n");
+        if (h_inode->name_size == dentry->d_name.len &&
+            strncmp(h_inode->name, dentry->d_name.name, dentry->d_name.len) == 0) {
+            deb("1");
+            if (h_inode->flags ^ HASHFS_INO_FLAG_DELETED)
+                goto set_inode;
+            else
+                goto leave;
+        } else if (h_inode->flags ^ HASHFS_INO_MORE_IN_BUCKET) {
+            deb("2");
             goto leave;
+        } else {
+            deb("3");
+            inode_offset_byte = h_inode->next;
+            brelse(bh_ino);
         }
-        hashfs_fill_inode(sb, inode, h_inode);
     }
+
+set_inode:
+    inode = new_inode(sb);
+    if (!inode) {
+        printk(KERN_ERR "Cannot create new inode. No memory.\n");
+        goto leave;
+    }
+    hashfs_fill_inode(sb, inode, h_inode);
 
 leave:
     if (bh_bitm != NULL) brelse(bh_bitm);

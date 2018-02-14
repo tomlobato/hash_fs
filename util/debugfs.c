@@ -107,6 +107,106 @@ void struct_size(){
     printf("%lu\n", sizeof(((struct y *)0)->block));
 }
 
+void create(char *path){
+    int fd = open(path, O_CREAT | O_WRONLY | O_EXCL, 0644);
+    if (fd < 0)
+        hashfs_error("open");
+    close(fd);
+}
+#define deb(...) printf(__VA_ARGS__);
+
+void print_h_inode(char *point, struct hashfs_inode * ino){
+    deb("----------- %s", point);
+
+    deb("h_inode mode_uid_gid_idx \t %u\n", ino->mode_uid_gid_idx);
+    deb("h_inode mtime \t %u\n", ino->mtime);
+
+    deb("h_inode flags \t %u\n", ino->flags);         // bytes
+
+    deb("h_inode ino \t %u\n", ino->ino);
+    deb("h_inode block \t %u\n", ino->block);       // bytes
+
+    deb("h_inode size \t %u \n", ino->size);
+    deb("h_inode name_size \t %u \n", ino->name_size);         // bytes
+
+    deb("h_inode next \t %u\n", ino->next);
+}
+
+void ls(char *dev) {
+    struct hashfs_inode *h_inode;
+    struct hashfs_superblock *h_sb;
+    int fd;
+    int file_count;
+    int inodes_per_block;
+    void *buf;
+
+    fd = open(dev, O_RDONLY);
+
+    lseek(fd, HASHFS_SB_OFFSET_BYTE, SEEK_SET);
+    h_sb = malloc(sizeof(struct hashfs_superblock));
+    read(fd, h_sb, sizeof(struct hashfs_superblock));
+
+    lseek(fd, h_sb->inodes_offset_blk * h_sb->blocksize, SEEK_SET);
+
+    file_count = h_sb->inode_count - h_sb->free_inode_count;
+    inodes_per_block = h_sb->blocksize / sizeof(struct hashfs_inode);
+
+    buf = malloc(h_sb->blocksize);
+
+    while (1) {
+        read(fd, buf, h_sb->blocksize);
+        h_inode = (struct hashfs_inode *)buf;
+        for (int j = 0; j < inodes_per_block; j++) {
+            if (!--file_count)
+                return;
+            printf("%.*s\n", h_inode->name_size, h_inode->name);
+            h_inode++;
+        }
+    }
+
+    close(fd);
+}
+
+void fill(char *dev) {
+    struct hashfs_inode h_inode;
+    struct hashfs_superblock *h_sb;
+    int fd;
+    int len;
+    int mk = 1900000;
+    int i;
+
+    // update sb
+    fd = open(dev, O_RDWR);
+
+    lseek(fd, HASHFS_SB_OFFSET_BYTE, SEEK_SET);
+    h_sb = malloc(sizeof(struct hashfs_superblock));
+    read(fd, h_sb, sizeof(struct hashfs_superblock));
+
+    h_sb->free_inode_count = h_sb->free_inode_count - mk;
+
+    lseek(fd, HASHFS_SB_OFFSET_BYTE, SEEK_SET);
+    write(fd, h_sb, sizeof(struct hashfs_superblock));
+
+    // create inodes
+    lseek(fd, h_sb->inodes_offset_blk * h_sb->blocksize, SEEK_SET);
+
+    i = 0;
+
+    while (i++ < mk) {
+        len = snprintf(NULL, 0, "%d", i) + 1;
+        snprintf(h_inode.name, len, "%d", i);
+        // printf("%d --%.*s--\n", len, len, h_inode.name);
+        h_inode.name_size = len;
+        // return;
+
+        h_inode.ino = i;
+
+        write(fd, &h_inode, sizeof(struct hashfs_inode));
+    }
+    
+    close(fd);
+}
+
 void usage(){
     printf("Usage: %s -e | -u | -h | -x string | -p number | -n number | -s /dev/device_name | -c <path> | -d <path>\n", 
         saved_args->argv[0]);
@@ -118,7 +218,7 @@ int main (int argc, char **argv) {
 
   save_args(argc, argv);
 
-  while ((c = getopt (argc, argv, "ehux:p:n:s:c:d:b")) != -1)
+  while ((c = getopt (argc, argv, "x:p:n:s:c:d:f:l:w:ehub")) != -1)
     switch (c)
       {
       case 'e':
@@ -147,6 +247,15 @@ int main (int argc, char **argv) {
         break;
       case 'd':
         test_hash_dispersion(optarg);
+        break;
+      case 'f':
+        create(optarg);
+        break;
+      case 'l':
+        ls(optarg);
+        break;
+      case 'w':
+        fill(optarg);
         break;
       case 'b':
         struct_size();

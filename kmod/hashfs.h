@@ -46,21 +46,20 @@ struct hashfs_superblock {
     uint64_t device_size; // bytes
 };
 
-#define HASHFS_INO_FLAG_DELETED       1 << 0
-#define HASHFS_INO_FLAG_LAST_IN_BLOCK 1 << 1
-
+#define HASHFS_INO_FLAG_DELETED   (1 << 0)
+#define HASHFS_INO_MORE_IN_BUCKET (1 << 1)
 
 struct hashfs_inode {
-    uint8_t mode_uid_gid_idx;	
     uint32_t mtime;
-    uint8_t flags;
     uint32_t ino;
     uint32_t block; 
     uint32_t size;  
-    uint8_t name_size;
-    char name[48];
     uint32_t next;
+    char name[40];
+    uint8_t mode_uid_gid_idx;	
+    uint8_t flags;
+    uint8_t name_size;
 };
 
-#define HASHFS_FILE_SIZE sizeof(((struct hashfs_inode *)0)->size)
-#define HASHFS_MAX_NAME_LEN sizeof(((struct hashfs_inode *)0)->name) - 1
+#define HASHFS_SIZE_LEN sizeof(((struct hashfs_inode *)0)->size)
+#define HASHFS_NAME_LEN sizeof(((struct hashfs_inode *)0)->name)
