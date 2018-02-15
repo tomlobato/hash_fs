@@ -61,7 +61,7 @@ struct dentry *hashfs_mount(struct file_system_type *fs_type,
     return mount_bdev(fs_type, flags, dev_name, data, hashfs_fill_super);
 }
 
-void hashfs_save_sb(struct super_block *sb) {
+inline void hashfs_save_sb(struct super_block *sb) {
     struct buffer_head *bh;
     struct hashfs_superblock *h_sb;
     void *ptr;
@@ -78,9 +78,7 @@ void hashfs_save_sb(struct super_block *sb) {
  
     memcpy(ptr, h_sb, sizeof(struct hashfs_superblock));
 
-    mark_buffer_dirty(bh);
-    sync_dirty_buffer(bh);
-    brelse(bh);
+    FINI_BH(bh);
 }
 
 int hashfs_statfs (struct dentry * dentry, struct kstatfs * buf)

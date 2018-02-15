@@ -57,6 +57,8 @@ extern struct kmem_cache *hashfs_inode_cache;
 
 // helpers
 
+#define HASHFS_DEBUG 0
+
 void print_h_sb(char *point, struct hashfs_superblock * h_sb);
 void print_h_inode(char *point, struct hashfs_inode * ino);
 
@@ -71,14 +73,20 @@ void print_h_inode(char *point, struct hashfs_inode * ino);
         byte_ptr = (void *)bh->b_data + byte % sb->s_blocksize; \
     } while (0)
 
-
-#define HASHFS_DEBUG 0
-
 #if HASHFS_DEBUG
     #define deb(...) printk(KERN_DEBUG __VA_ARGS__);
 #else
     #define deb(...)
 #endif
+
+#define FINI_BH(bh) \
+    do { \
+        mark_buffer_dirty(bh); \
+        brelse(bh); \
+    } while (0)
+        // sync_dirty_buffer(bh);
+
+#define BRELSE_IF(bh) if (bh != NULL) brelse(bh);
 
 static inline struct hashfs_superblock *HASHFS_SB(struct super_block *sb) {
     return sb->s_fs_info;

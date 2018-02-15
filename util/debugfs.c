@@ -132,15 +132,29 @@ void create(char *path){
 
 }
 
+int mk = 100000;
+
 void bulk_creat(char *base_path) {
     int len;
     char *fn;
-    for(int i = 0; i < 1000000; i++) {
+    clock_t t;
+    int mes_time = 1;
+    
+    fn = malloc(256 * sizeof(char));
+
+    if (mes_time) t = clock();
+
+    for(int i = 0; i < mk; i++) {
         len = snprintf(NULL, 0, "%d", i) + 1;
-        fn = malloc(len * sizeof(char));
         snprintf(fn, len, "%d", i);
-        // fn[len] = '\0';
         create(join_paths(base_path, fn));
+    }
+
+    if (mes_time) t = clock() - t;
+
+    if (mes_time) {
+        double time_taken = ((double)t)/CLOCKS_PER_SEC;
+        printf("time diff: %f\n", time_taken);
     }
 }
 
@@ -148,14 +162,25 @@ void bulk_unlink(char *base_path) {
     int len;
     char *fn;
     char *path;
+    clock_t t;
+    int mes_time = 1;
 
-    for(int i = 0; i < 1000000; i++) {
+    fn = malloc(256 * sizeof(char));
+
+    if (mes_time) t = clock();
+
+    for(int i = 0; i < mk; i++) {
         len = snprintf(NULL, 0, "%d", i) + 1;
-        fn = malloc(len * sizeof(char));
         snprintf(fn, len, "%d", i);
         path = join_paths(base_path, fn);
-        printf("--%s--%s--\n", fn, path);
         unlink(path);
+    }
+
+    if (mes_time) t = clock() - t;
+
+    if (mes_time) {
+        double time_taken = ((double)t)/CLOCKS_PER_SEC;
+        printf("time diff: %f\n", time_taken);
     }
 }
 
@@ -224,7 +249,6 @@ void fill(char *dev) {
     struct hashfs_superblock *h_sb;
     int fd;
     int len;
-    int mk = 1900000;
     int i;
 
     // update sb
@@ -247,12 +271,8 @@ void fill(char *dev) {
     while (i++ < mk) {
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(h_inode.name, len, "%d", i);
-        // printf("%d --%.*s--\n", len, len, h_inode.name);
         h_inode.name_size = len;
-        // return;
-
         h_inode.ino = i;
-
         write(fd, &h_inode, sizeof(struct hashfs_inode));
     }
     
