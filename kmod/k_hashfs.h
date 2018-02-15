@@ -52,12 +52,13 @@ void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
                         struct hashfs_inode *hashfs_inode);
 long long hashfs_pow(long long x, long long y);
 void hashfs_save_sb(struct super_block *sb);
+int hashfs_unlink(struct inode * dir, struct dentry *dentry);
 
 extern struct kmem_cache *hashfs_inode_cache;
 
 // helpers
 
-#define HASHFS_DEBUG 0
+#define HASHFS_DEBUG 1
 
 void print_h_sb(char *point, struct hashfs_superblock * h_sb);
 void print_h_inode(char *point, struct hashfs_inode * ino);

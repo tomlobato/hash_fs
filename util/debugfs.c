@@ -117,7 +117,7 @@ void create(char *path){
     int mes_time = 0;
 
     if (mes_time) t = clock();
-    fd = open(path, O_CREAT | O_WRONLY | O_EXCL, 0644);
+    fd = open(path, O_CREAT | O_WRONLY, 0644);
     if (mes_time) t = clock() - t;
 
     if (fd < 0)
@@ -129,7 +129,6 @@ void create(char *path){
     }
 
     close(fd);
-
 }
 
 int mk = 100000;
@@ -147,6 +146,8 @@ void bulk_creat(char *base_path) {
     for(int i = 0; i < mk; i++) {
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(fn, len, "%d", i);
+        fn[len] = '\0';
+        printf("--%s--\n", fn);
         create(join_paths(base_path, fn));
     }
 
@@ -164,7 +165,7 @@ void bulk_unlink(char *base_path) {
     char *path;
     clock_t t;
     int mes_time = 1;
-
+int x;
     fn = malloc(256 * sizeof(char));
 
     if (mes_time) t = clock();
@@ -172,8 +173,14 @@ void bulk_unlink(char *base_path) {
     for(int i = 0; i < mk; i++) {
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(fn, len, "%d", i);
+        fn[len] = '\0';
+        printf("--%s--\n", fn);
         path = join_paths(base_path, fn);
-        unlink(path);
+        if ((x = unlink(path)) != 0) {
+            // perror();
+            printf("errno=%d x=%d\n", errno, x);
+            hashfs_error("unlink %s\n", path);            
+        }
     }
 
     if (mes_time) t = clock() - t;

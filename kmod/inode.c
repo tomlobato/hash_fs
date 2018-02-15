@@ -216,8 +216,7 @@ struct dentry *hashfs_lookup(struct inode *dir,
             h_sb->inodes_offset_blk, inode_offset_byte);
 
         if (h_inode->name_size == dentry->d_name.len &&
-            strncmp(h_inode->name, 
-                dentry->d_name.name, dentry->d_name.len) == 0) {
+            strncmp(h_inode->name, dentry->d_name.name, dentry->d_name.len) == 0) {
             if (h_inode->flags ^ HASHFS_INO_FLAG_DELETED)
                 goto set_inode;
             else
@@ -249,4 +248,81 @@ leave:
 void hashfs_destroy_inode(struct inode *inode) {
     deb("hashfs_destroy_inode %lu \n", inode->i_ino);
     return;
+}
+
+int hashfs_unlink(struct inode * dir, struct dentry *dentry)
+{
+	struct inode * inode = d_inode(dentry);
+	int err;
+    struct hashfs_inode *h_inode;
+    struct hashfs_superblock *h_sb;
+    struct super_block *sb;
+    struct buffer_head *bh_bitm = NULL, 
+                        *bh_hash = NULL, 
+                        *bh_ino = NULL;
+    uint64_t hash_slot, inode_offset_byte = 0;
+    void *hash_key_ptr;
+    long unsigned *ptr_bitmap;
+
+    deb("hashfs_unlink dir=%lu fname=%.*s dentry=%p\n", dir->i_ino, 
+                dentry->d_name.len, dentry->d_name.name, dentry);
+
+    sb = dir->i_sb;
+    h_sb = HASHFS_SB(sb);
+
+    hash_slot = HASH_SLOT(dentry->d_name.name, 
+                            dentry->d_name.len, h_sb->hash_len);
+
+    // bitmap
+    READ_BYTES(sb, bh_bitm, ptr_bitmap, 
+                h_sb->bitmap_offset_blk, hash_slot / BIB);
+    if (!test_bit(hash_slot % BIB, ptr_bitmap)) {
+        deb("3\n");
+        err = ENOENT;
+        goto out;
+    }
+
+    // hash
+    READ_BYTES(sb, bh_hash, hash_key_ptr, 
+                h_sb->hash_offset_blk, hash_slot * h_sb->hash_slot_size);
+    memcpy(&inode_offset_byte, hash_key_ptr, h_sb->hash_slot_size);
+
+    // inode
+    while (1) {
+        READ_BYTES(sb, bh_ino, h_inode, 
+            h_sb->inodes_offset_blk, inode_offset_byte);
+
+        if (h_inode->name_size == dentry->d_name.len &&
+            strncmp(h_inode->name, dentry->d_name.name, dentry->d_name.len) == 0) {
+            if (h_inode->flags ^ HASHFS_INO_FLAG_DELETED)
+                break;
+            else {
+                deb("1\n");
+                err = ENOENT;
+                goto out;
+            }
+        } else if (h_inode->flags ^ HASHFS_INO_MORE_IN_BUCKET) {
+            deb("2\n");
+            // err = ENOENT;
+            goto out;
+        } else {
+            inode_offset_byte = h_inode->next;
+            brelse(bh_ino);
+        }
+    }
+
+    h_inode->flags |= HASHFS_INO_FLAG_DELETED;
+    FINI_BH(bh_ino);
+	mark_inode_dirty(inode);
+
+    h_sb->free_inode_count++;
+    hashfs_save_sb(sb);
+
+	inode->i_ctime = dir->i_ctime;
+	inode_dec_link_count(inode);
+	err = 0;
+out:
+    if (err != 0)
+        deb("err=%d\n", err);
+	return err;
 }
