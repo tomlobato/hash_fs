@@ -72,7 +72,13 @@ void print_h_inode(char *point, struct hashfs_inode * ino);
 
 #define BITS_IN_BYTE 8
 
-#define deb(...);// printk(KERN_DEBUG __VA_ARGS__);
+#define HASHFS_DEBUG 1
+
+#if HASHFS_DEBUG
+    #define deb(...) printk(KERN_DEBUG __VA_ARGS__);
+#else
+    #define deb(...)
+#endif
 
 static inline struct hashfs_superblock *HASHFS_SB(struct super_block *sb) {
     return sb->s_fs_info;
