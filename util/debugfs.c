@@ -60,7 +60,7 @@ void calc_hash(char *word, void *_count, void *_nlines){
 
 void test_hash_dispersion(char *path) {
     unsigned int nlines = count_lines(path);
-    nlines *= 100;
+    nlines *= 10;
     nlines = next_prime(nlines);
 
     int *count = calloc(sizeof(int), nlines);
@@ -80,6 +80,10 @@ void test_hash_dispersion(char *path) {
         printf("%d ", a[i]);
 
     ps("");
+}
+
+void check_colisions() {
+    
 }
 
 void test_error(){
@@ -108,11 +112,53 @@ void struct_size(){
 }
 
 void create(char *path){
-    int fd = open(path, O_CREAT | O_WRONLY | O_EXCL, 0644);
+    int fd;
+    clock_t t;
+    int mes_time = 0;
+
+    if (mes_time) t = clock();
+    fd = open(path, O_CREAT | O_WRONLY | O_EXCL, 0644);
+    if (mes_time) t = clock() - t;
+
     if (fd < 0)
         hashfs_error("open");
+
+    if (mes_time) {
+        double time_taken = ((double)t)/CLOCKS_PER_SEC;
+        printf("time diff: %f\n", time_taken);
+    }
+
     close(fd);
+
 }
+
+void bulk_creat(char *base_path) {
+    int len;
+    char *fn;
+    for(int i = 0; i < 1000000; i++) {
+        len = snprintf(NULL, 0, "%d", i) + 1;
+        fn = malloc(len * sizeof(char));
+        snprintf(fn, len, "%d", i);
+        // fn[len] = '\0';
+        create(join_paths(base_path, fn));
+    }
+}
+
+void bulk_unlink(char *base_path) {
+    int len;
+    char *fn;
+    char *path;
+
+    for(int i = 0; i < 1000000; i++) {
+        len = snprintf(NULL, 0, "%d", i) + 1;
+        fn = malloc(len * sizeof(char));
+        snprintf(fn, len, "%d", i);
+        path = join_paths(base_path, fn);
+        printf("--%s--%s--\n", fn, path);
+        unlink(path);
+    }
+}
+
 #define deb(...) printf(__VA_ARGS__);
 
 void print_h_inode(char *point, struct hashfs_inode * ino){
@@ -139,6 +185,7 @@ void ls(char *dev) {
     int file_count;
     int inodes_per_block;
     void *buf;
+    int mib = 0;
 
     fd = open(dev, O_RDONLY);
 
@@ -158,11 +205,16 @@ void ls(char *dev) {
         h_inode = (struct hashfs_inode *)buf;
         for (int j = 0; j < inodes_per_block; j++) {
             if (!--file_count)
-                return;
+                goto leave;
+            if (h_inode->flags & HASHFS_INO_MORE_IN_BUCKET)
+                mib++;
             printf("%.*s\n", h_inode->name_size, h_inode->name);
             h_inode++;
         }
     }
+
+leave:
+    printf("multi inode bucket: %d\n", mib);
 
     close(fd);
 }
@@ -218,9 +270,15 @@ int main (int argc, char **argv) {
 
   save_args(argc, argv);
 
-  while ((c = getopt (argc, argv, "x:p:n:s:c:d:f:l:w:ehub")) != -1)
+  while ((c = getopt (argc, argv, "x:p:n:s:c:d:f:l:w:m:z:ehub")) != -1)
     switch (c)
       {
+      case 'm':
+        bulk_creat(optarg);
+        break;
+      case 'z':
+        bulk_unlink(optarg);
+        break;
       case 'e':
         test_error();
         break;

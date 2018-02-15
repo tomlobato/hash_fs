@@ -19,7 +19,9 @@
 #include <linux/log2.h>
 #include <linux/uaccess.h>
 #include <linux/dax.h>
+#include <linux/spinlock.h>
 
+// #define KERN_MOD
 #include "hashfs.h"
 #include "k_xxhash.h"
 
@@ -58,9 +60,9 @@ extern struct kmem_cache *hashfs_inode_cache;
 void print_h_sb(char *point, struct hashfs_superblock * h_sb);
 void print_h_inode(char *point, struct hashfs_inode * ino);
 
-#define HASH_SLOT(name, len, slot_num) (xxh32(name, len, 0) / slot_num)
+#define HASH_SLOT(name, len, slot_num) (xxh32(name, len, 0) % slot_num)
 
-#define HAS_BIT(byte, bit_idx) ((byte >> (BITS_IN_BYTE - 1 - bit_idx)) & 0b1)
+#define BIB 8
 
 #define READ_BYTES(sb, bh, byte_ptr, blk, byte) \
     do { \
@@ -70,9 +72,7 @@ void print_h_inode(char *point, struct hashfs_inode * ino);
     } while (0)
 
 
-#define BITS_IN_BYTE 8
-
-#define HASHFS_DEBUG 1
+#define HASHFS_DEBUG 0
 
 #if HASHFS_DEBUG
     #define deb(...) printk(KERN_DEBUG __VA_ARGS__);

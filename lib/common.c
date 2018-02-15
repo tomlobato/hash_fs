@@ -427,7 +427,17 @@ void print_superblock(struct hashfs_superblock *sb) {
     printf("inode tbl size\t%.2lf MB\n\n", 
         (double)sb->inodes_size / pow(2, 20));
 
-    printf("metadata total\t%.2lf MB (%.2lf%%)\n",
+    printf("metadata total\t%.2lf MB (%.2lf%%)\n\n",
         sb->data_offset_blk * sb->blocksize / pow(2, 20),
         100.0 * sb->data_offset_blk * sb->blocksize / sb->device_size);
+
+    // var
+    printf("bitmap_offset_blk\t%lu\n", sb->bitmap_offset_blk);
+    printf("hash_offset_blk  \t%lu\n", sb->hash_offset_blk);
+    printf("inodes_offset_blk\t%lu\n", sb->inodes_offset_blk);
+    printf("data_offset_blk  \t%lu\n", sb->data_offset_blk);
+    printf("free_inode_count \t%lu\n", sb->free_inode_count);
+    printf("next_inode_byte  \t%lu\n", sb->next_inode_byte);
+    printf("next_data_blk    \t%lu\n", sb->next_data_blk);
+    printf("next_ino         \t%lu\n", sb->next_ino);
 }

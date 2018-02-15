@@ -14,7 +14,7 @@ cmds = <<CMDS
     [ -z "`grep #{dev} /proc/mounts`" ] || sudo umount #{dev}
     [ -z "`grep #{mod} /proc/modules`" ] || sudo rmmod #{mod}
 
-    ./util/mkfs #{dev} > /dev/null
+    # ./util/mkfs #{dev} > /dev/null
 
     sudo insmod kmod/#{mod}.ko
     sudo mount -t #{mod} #{dev} #{mntp}

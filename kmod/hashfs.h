@@ -1,4 +1,8 @@
 
+// #ifdef KERN_MOD
+// #include <linux/spinlock.h>
+// #endif
+
 #define HASHFS_VERSION 1
 #define HASHFS_VERSION_NAME "0.1"
 #define HASHFS_MAGIC 0x99C7FF92
@@ -44,6 +48,10 @@ struct hashfs_superblock {
     uint16_t sector_size;
     uint64_t block_count;
     uint64_t device_size; // bytes
+
+// #ifdef KERN_MOD
+//     spinlock_t lock;
+// #endif
 };
 
 #define HASHFS_INO_FLAG_DELETED   (1 << 0)
