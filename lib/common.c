@@ -57,15 +57,9 @@ uint8_t *mk_uuid(){
     return uuid;
 }
 
-// char *uuid_str(uuid_t uuid){
-//     char *str = hashfs_malloc(sizeof(char) * 36);
-//     uuid_unparse(uuid, str);
-//     return str;
-// }
-
 inline uint64_t divceil(uint64_t x, uint64_t y){
     return x / y + 
-           x % y ? 1 : 0;
+           (x % y ? 1 : 0);
 }
 
 // File

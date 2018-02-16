@@ -203,7 +203,7 @@ struct dentry *hashfs_lookup(struct inode *dir,
     READ_BYTES(sb, bh_bitm, ptr_bitmap, 
                 h_sb->bitmap_offset_blk, hash_slot / BIB);
     if (!test_bit(hash_slot % BIB, ptr_bitmap))
-        goto leave;
+        goto out;
 
     // hash
     READ_BYTES(sb, bh_hash, hash_key_ptr, 
@@ -220,12 +220,14 @@ struct dentry *hashfs_lookup(struct inode *dir,
             if (h_inode->flags ^ HASHFS_INO_FLAG_DELETED)
                 goto set_inode;
             else
-                goto leave;
-        } else if (h_inode->flags ^ HASHFS_INO_FLAG_MORE_IN_BUCKET) {
-            goto leave;
+                goto out;
         } else {
-            inode_offset_byte = h_inode->next;
-            brelse(bh_ino);
+            if (h_inode->flags & HASHFS_INO_FLAG_MORE_IN_BUCKET) {
+                inode_offset_byte = h_inode->next;
+                brelse(bh_ino);
+            } else {
+                goto out;
+            }
         }
     }
 
@@ -233,11 +235,11 @@ set_inode:
     inode = new_inode(sb);
     if (!inode) {
         printk(KERN_ERR "Cannot create new inode. No memory.\n");
-        goto leave;
+        goto out;
     }
     hashfs_fill_inode(sb, inode, h_inode);
 
-leave:
+out:
     BRELSE_IF(bh_bitm);
     BRELSE_IF(bh_hash);
     BRELSE_IF(bh_ino);
@@ -277,7 +279,6 @@ int hashfs_unlink(struct inode * dir, struct dentry *dentry)
     READ_BYTES(sb, bh_bitm, ptr_bitmap, 
                 h_sb->bitmap_offset_blk, hash_slot / BIB);
     if (!test_bit(hash_slot % BIB, ptr_bitmap)) {
-        deb("3\n");
         err = ENOENT;
         goto out;
     }
@@ -297,17 +298,17 @@ int hashfs_unlink(struct inode * dir, struct dentry *dentry)
             if (h_inode->flags ^ HASHFS_INO_FLAG_DELETED)
                 break;
             else {
-                deb("1\n");
                 err = ENOENT;
                 goto out;
             }
-        } else if (h_inode->flags ^ HASHFS_INO_FLAG_MORE_IN_BUCKET) {
-            deb("2\n");
-            // err = ENOENT;
-            goto out;
         } else {
-            inode_offset_byte = h_inode->next;
-            brelse(bh_ino);
+            if (h_inode->flags & HASHFS_INO_FLAG_MORE_IN_BUCKET) {
+                inode_offset_byte = h_inode->next;
+                brelse(bh_ino);
+            } else {
+                err = ENOENT;
+                goto out;
+            }
         }
     }
 
@@ -320,9 +321,9 @@ int hashfs_unlink(struct inode * dir, struct dentry *dentry)
 
 	inode->i_ctime = dir->i_ctime;
 	inode_dec_link_count(inode);
+
 	err = 0;
 out:
-    if (err != 0)
-        deb("err=%d\n", err);
 	return err;
 }
+

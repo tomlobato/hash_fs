@@ -131,7 +131,7 @@ void create(char *path){
     close(fd);
 }
 
-int mk = 10000;
+int mk = 100000;
 
 void bulk_creat(char *base_path) {
     int len;
@@ -291,15 +291,21 @@ void usage(){
         saved_args->argv[0]);
 }
 
+void test(char *arg1) {
+}
+
 int main (int argc, char **argv) {
   int c;
   int index;
 
   save_args(argc, argv);
 
-  while ((c = getopt (argc, argv, "x:p:n:s:c:d:f:l:w:m:z:ehub")) != -1)
+  while ((c = getopt (argc, argv, "x:p:n:s:c:d:f:l:w:m:z:ehubt")) != -1)
     switch (c)
       {
+      case 't':
+        test(optarg);
+        break;
       case 'm':
         bulk_creat(optarg);
         break;
