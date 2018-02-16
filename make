@@ -37,13 +37,13 @@ cmds = <<CMDS
     # sudo mount -t #{mod} #{dev} #{mntp}
     # ls #{mntp}/x7x7x7
 
-    ./util/debugfs -m #{mntp}
-    ./util/debugfs -z #{mntp}
+    # ./util/debugfs -m #{mntp}
+    # ./util/debugfs -z #{mntp}
 
-    mkdir /tmp/xx
-    ./util/debugfs -m /tmp/xx
-    ./util/debugfs -z /tmp/xx
-    rm -rf /tmp/xx
+    # mkdir /tmp/xx
+    # ./util/debugfs -m /tmp/xx
+    # ./util/debugfs -z /tmp/xx
+    # rm -rf /tmp/xx
 
 CMDS
 

@@ -41,7 +41,7 @@ static inline int hashfs_save_inode(struct super_block *sb, struct hashfs_inode 
     struct buffer_head *bh_ino;
     struct hashfs_superblock *h_sb;
 
-    deb("hashfs_save_inode name=%s len=%d\n", h_inode->name, h_inode->name_size);
+    deb("hashfs_save_inode name=%.*s len=%d\n", h_inode->name_size, h_inode->name, h_inode->name_size);
 
     h_sb = HASHFS_SB(sb);
 
@@ -107,7 +107,7 @@ static inline int hashfs_save(struct super_block *sb, struct inode *inode, struc
             READ_BYTES(sb, bh_ino, bucket_h_inode, 
                 h_sb->inodes_offset_blk, inode_offset_byte);
 
-            if (bucket_h_inode->flags ^ HASHFS_INO_MORE_IN_BUCKET)
+            if (bucket_h_inode->flags ^ HASHFS_INO_FLAG_MORE_IN_BUCKET)
                 break;
 
             inode_offset_byte = bucket_h_inode->next;
@@ -116,7 +116,7 @@ static inline int hashfs_save(struct super_block *sb, struct inode *inode, struc
 
         //  update prev inode
         bucket_h_inode->next = h_sb->next_inode_byte;
-        bucket_h_inode->flags |= HASHFS_INO_MORE_IN_BUCKET;
+        bucket_h_inode->flags |= HASHFS_INO_FLAG_MORE_IN_BUCKET;
         FINI_BH(bh_ino);
 
     } else {
@@ -221,7 +221,7 @@ struct dentry *hashfs_lookup(struct inode *dir,
                 goto set_inode;
             else
                 goto leave;
-        } else if (h_inode->flags ^ HASHFS_INO_MORE_IN_BUCKET) {
+        } else if (h_inode->flags ^ HASHFS_INO_FLAG_MORE_IN_BUCKET) {
             goto leave;
         } else {
             inode_offset_byte = h_inode->next;
@@ -301,7 +301,7 @@ int hashfs_unlink(struct inode * dir, struct dentry *dentry)
                 err = ENOENT;
                 goto out;
             }
-        } else if (h_inode->flags ^ HASHFS_INO_MORE_IN_BUCKET) {
+        } else if (h_inode->flags ^ HASHFS_INO_FLAG_MORE_IN_BUCKET) {
             deb("2\n");
             // err = ENOENT;
             goto out;

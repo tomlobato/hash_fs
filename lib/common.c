@@ -63,11 +63,9 @@ uint8_t *mk_uuid(){
 //     return str;
 // }
 
-uint64_t divceil(uint64_t x, uint64_t y){
-    uint64_t z;
-    z = x / y;
-    if (x % y) z++;
-    return z;
+inline uint64_t divceil(uint64_t x, uint64_t y){
+    return x / y + 
+           x % y ? 1 : 0;
 }
 
 // File

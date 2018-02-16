@@ -54,8 +54,8 @@ struct hashfs_superblock {
 // #endif
 };
 
-#define HASHFS_INO_FLAG_DELETED   (1 << 0)
-#define HASHFS_INO_MORE_IN_BUCKET (1 << 1)
+#define HASHFS_INO_FLAG_DELETED        (1 << 0)
+#define HASHFS_INO_FLAG_MORE_IN_BUCKET (1 << 1)
 
 struct hashfs_inode {
     uint32_t mtime;

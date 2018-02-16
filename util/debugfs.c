@@ -131,7 +131,7 @@ void create(char *path){
     close(fd);
 }
 
-int mk = 100000;
+int mk = 10000;
 
 void bulk_creat(char *base_path) {
     int len;
@@ -147,7 +147,7 @@ void bulk_creat(char *base_path) {
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(fn, len, "%d", i);
         fn[len] = '\0';
-        printf("--%s--\n", fn);
+        // printf("--%s--\n", fn);
         create(join_paths(base_path, fn));
     }
 
@@ -174,7 +174,7 @@ int x;
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(fn, len, "%d", i);
         fn[len] = '\0';
-        printf("--%s--\n", fn);
+        // printf("--%s--\n", fn);
         path = join_paths(base_path, fn);
         if ((x = unlink(path)) != 0) {
             // perror();
@@ -238,7 +238,7 @@ void ls(char *dev) {
         for (int j = 0; j < inodes_per_block; j++) {
             if (!--file_count)
                 goto leave;
-            if (h_inode->flags & HASHFS_INO_MORE_IN_BUCKET)
+            if (h_inode->flags & HASHFS_INO_FLAG_MORE_IN_BUCKET)
                 mib++;
             printf("%.*s\n", h_inode->name_size, h_inode->name);
             h_inode++;
