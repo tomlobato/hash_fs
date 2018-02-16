@@ -147,7 +147,6 @@ void bulk_creat(char *base_path) {
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(fn, len, "%d", i);
         fn[len] = '\0';
-        // printf("--%s--\n", fn);
         create(join_paths(base_path, fn));
     }
 
@@ -165,7 +164,8 @@ void bulk_unlink(char *base_path) {
     char *path;
     clock_t t;
     int mes_time = 1;
-int x;
+    int x;
+    
     fn = malloc(256 * sizeof(char));
 
     if (mes_time) t = clock();
@@ -174,12 +174,9 @@ int x;
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(fn, len, "%d", i);
         fn[len] = '\0';
-        // printf("--%s--\n", fn);
         path = join_paths(base_path, fn);
         if ((x = unlink(path)) != 0) {
-            // perror();
-            printf("errno=%d x=%d\n", errno, x);
-            hashfs_error("unlink %s\n", path);            
+            printf("error unlinking %s errno=%d x=%d\n", fn, errno, x);
         }
     }
 
