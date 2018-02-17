@@ -82,10 +82,6 @@ void test_hash_dispersion(char *path) {
     ps("");
 }
 
-void check_colisions() {
-    
-}
-
 void test_error(){
     char *p = malloc(1);
     read(44, p, 78);
@@ -131,7 +127,7 @@ void create(char *path){
     close(fd);
 }
 
-int mk = 100000;
+int mk = 1000000;
 
 void bulk_creat(char *base_path) {
     int len;

@@ -32,7 +32,8 @@ int hashfs_readdir(struct file *file, struct dir_context *ctx) {
     if (ctx->pos == 2) 
         ctx->pos -= 2;
 
-    if (ctx->pos >= h_sb->next_inode_byte)
+    if (ctx->pos >= h_sb->next_inode_byte || 
+        h_sb->inode_count == h_sb->free_inode_count)
         return 0;
 
     ino_len = sizeof(struct hashfs_inode);
