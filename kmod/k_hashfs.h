@@ -58,7 +58,7 @@ extern struct kmem_cache *hashfs_inode_cache;
 
 // helpers
 
-#define HASHFS_DEBUG 1
+#define HASHFS_DEBUG 0
 
 void print_h_sb(char *point, struct hashfs_superblock * h_sb);
 void print_h_inode(char *point, struct hashfs_inode * ino);

@@ -81,7 +81,7 @@ void setup_sb(struct hashfs_superblock *sb, struct sb_settings *settings, char *
     
     // From disk info
     sb->inode_count = get_inode_count(sb->block_count);
-    sb->free_inode_count = sb->inode_count - 1;
+    sb->free_inode_count = sb->inode_count;
     sb->max_file_size = sb->blocksize * pow(2, 8 * HASHFS_SIZE_LEN);
     sb->hash_len = next_prime(sb->inode_count * HASHFS_HASH_MODULUS_FACTOR);
 
