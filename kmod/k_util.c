@@ -45,19 +45,20 @@ void print_h_sb(char *point, struct hashfs_superblock * h_sb){
 }
 
 void print_h_inode(char *point, struct hashfs_inode * ino){
-    deb("----------- %s", point);
+    printk(KERN_DEBUG "----------- %s", point);
 
-    deb("h_inode mode_uid_gid_idx \t %u\n", ino->mode_uid_gid_idx);
-    deb("h_inode mtime \t %u\n", ino->mtime);
+    printk(KERN_DEBUG "h_inode mode_uid_gid_idx \t %u\n", ino->mode_uid_gid_idx);
+    printk(KERN_DEBUG "h_inode mtime \t %u\n", ino->mtime);
 
-    deb("h_inode flags \t %u\n", ino->flags);         // bytes
+    printk(KERN_DEBUG "h_inode flags \t %u\n", ino->flags);         // bytes
 
-    deb("h_inode ino \t %u\n", ino->ino);
-    deb("h_inode block \t %u\n", ino->block);       // bytes
+    printk(KERN_DEBUG "h_inode ino \t %u\n", ino->ino);
+    printk(KERN_DEBUG "h_inode block \t %u\n", ino->block);       // bytes
 
-    deb("h_inode size \t %u \n", ino->size);
-    deb("h_inode name_size \t %u \n", ino->name_size);         // bytes
+    printk(KERN_DEBUG "h_inode size \t %u \n", ino->size);
+    printk(KERN_DEBUG "h_inode name \t %*.s \n", ino->name_size, ino->name);         // bytes
+    printk(KERN_DEBUG "h_inode name_size \t %u \n", ino->name_size);         // bytes
 
-    deb("h_inode next \t %u\n", ino->next);
+    printk(KERN_DEBUG "h_inode next \t %u\n", ino->next);
 }
 

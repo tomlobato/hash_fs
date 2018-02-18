@@ -1,6 +1,8 @@
 #include <ctype.h>
 #include "../lib/common.h"
 
+int mk = 10000;
+
 extern struct call_args *saved_args;
 
 int count_lines(char *path){
@@ -126,8 +128,6 @@ void create(char *path){
 
     close(fd);
 }
-
-int mk = 1000000;
 
 void bulk_creat(char *base_path) {
     int len;
@@ -287,15 +287,40 @@ void usage(){
 void test(char *arg1) {
 }
 
+void read_hash_bitmap(char *dev) {
+    struct hashfs_superblock *h_sb;
+    int fd;
+    int byte;
+
+    fd = open(dev, O_RDONLY);
+
+    lseek(fd, HASHFS_SB_OFFSET_BYTE, SEEK_SET);
+    h_sb = malloc(sizeof(struct hashfs_superblock));
+    read(fd, h_sb, sizeof(struct hashfs_superblock));
+
+    lseek(fd, h_sb->bitmap_offset_blk * h_sb->blocksize, SEEK_SET);
+
+    for(int i = 0; i < h_sb->bitmap_size; i++){
+        read(fd, &byte, 1);
+        if (byte)
+            printf("%d %d\n", i, byte);
+    }
+
+    close(fd);
+}
+
 int main (int argc, char **argv) {
   int c;
   int index;
 
   save_args(argc, argv);
 
-  while ((c = getopt (argc, argv, "x:p:n:s:c:d:f:l:w:m:z:ehubt")) != -1)
+  while ((c = getopt (argc, argv, "x:p:n:s:c:d:f:l:w:m:z:r:ehubt")) != -1)
     switch (c)
       {
+      case 'r':
+        read_hash_bitmap(optarg);
+        break;
       case 't':
         test(optarg);
         break;
