@@ -7,6 +7,44 @@ long long hashfs_pow(long long x, long long y){
     return x;
 }
 
+void print_h_sb_short(char *point, struct hashfs_superblock * h_sb){
+    printk(KERN_DEBUG "----------- %s", point);
+
+    printk(KERN_DEBUG "hashfs_save_sb uint64_t version %llu\n", h_sb->version);
+    printk(KERN_DEBUG "hashfs_save_sb uint64_t magic %llu\n", h_sb->magic);
+    printk(KERN_DEBUG "hashfs_save_sb uint64_t blocksize %llu\n", h_sb->blocksize);
+
+    printk(KERN_DEBUG "hashfs_save_sb uint8_t uuid[16] %.*s\n", 16, h_sb->uuid); /* 128-bit uuid for volume */
+
+    printk(KERN_DEBUG "hashfs_save_sb uint64_t inode_count %llu\n", h_sb->inode_count);
+    printk(KERN_DEBUG "hashfs_save_sb uint64_t free_inode_count %llu\n", h_sb->free_inode_count);
+
+    printk(KERN_DEBUG "hashfs_save_sb uint64_t next_inode_byte %llu\n", h_sb->next_inode_byte); // next byte available inside inode area
+    printk(KERN_DEBUG "hashfs_save_sb uint64_t next_data_blk %llu\n", h_sb->next_data_blk);   // next block available inside data area  
+    printk(KERN_DEBUG "hashfs_save_sb uint64_t next_ino %llu\n", h_sb->next_ino);        // next inode number available
+
+    printk(KERN_DEBUG "hashfs_save_sb uint64_t device_size %llu\n", h_sb->device_size); // bytes
+}
+
+void show_sb(struct super_block *sb){
+    struct buffer_head *bh;
+    
+    bh = sb_bread(sb, 0);
+    BUG_ON(!bh);
+    print_h_sb_short("0",           (struct hashfs_superblock *)bh->b_data);
+    brelse(bh);
+
+    bh = sb_bread(sb, 0);
+    BUG_ON(!bh);
+    print_h_sb_short("1024",        (struct hashfs_superblock *)(bh->b_data + 1024));
+    brelse(bh);
+
+    bh = sb_bread(sb, 0);
+    BUG_ON(!bh);
+    print_h_sb_short("1024 + 1 sb", (struct hashfs_superblock *)(bh->b_data + 1024 + sizeof(struct hashfs_superblock)));
+    brelse(bh);
+}
+
 void print_h_sb(char *point, struct hashfs_superblock * h_sb){
     deb("----------- %s", point);
 
@@ -56,7 +94,7 @@ void print_h_inode(char *point, struct hashfs_inode * ino){
     printk(KERN_DEBUG "h_inode block \t %u\n", ino->block);       // bytes
 
     printk(KERN_DEBUG "h_inode size \t %u \n", ino->size);
-    printk(KERN_DEBUG "h_inode name \t %*.s \n", ino->name_size, ino->name);         // bytes
+    printk(KERN_DEBUG "h_inode name \t --%*.s-- \n", ino->name_size, ino->name);         // bytes
     printk(KERN_DEBUG "h_inode name_size \t %u \n", ino->name_size);         // bytes
 
     printk(KERN_DEBUG "h_inode next \t %u\n", ino->next);

@@ -1,0 +1,2 @@
+#!/bin/bash
+hexdump -s 0 -n 1000000000 -C /dev/sdb

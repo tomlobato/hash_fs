@@ -237,16 +237,10 @@ char *mk_str(char *fmt, char *str){
     return out;
 }
 
-char *join_paths(char *p1, char *p2) {
-    char *path;
-    
+void join_paths(char *res, char *p1, char *p2) {    
     if (p1 == NULL || p2 == NULL)
         hashfs_error("paths cannot be NULL. Aborting.");
-
-    path = hashfs_malloc(sizeof(char) * (strlen(p1) + strlen(p2)) + 2);
-    sprintf(path, "%s/%s", p1, p2);
-
-    return path;
+    sprintf(res, "%s/%s", p1, p2);
 }
 
 unsigned int hash(char *str)
@@ -367,7 +361,7 @@ int get_lines(char *fileName, void(*func)(char *)) {
 
 // FS
 
-struct hashfs_superblock *get_superblock(char *dev_file){
+struct hashfs_superblock *get_superblock(char *dev_file, int offset){
     struct hashfs_superblock *sb;
     int fd;
     int sb_len;
@@ -377,7 +371,7 @@ struct hashfs_superblock *get_superblock(char *dev_file){
     sb = hashfs_calloc(1, sb_len);
     fd = open_dev(dev_file, O_RDONLY);
 
-    if (lseek(fd, HASHFS_SB_OFFSET_BYTE, SEEK_SET) == -1)
+    if (lseek(fd, offset, SEEK_SET) == -1)
         hashfs_error("get_superblock: error lseek`ing disk");
 
     if (read(fd, sb, sb_len) != sb_len)
@@ -432,4 +426,22 @@ void print_superblock(struct hashfs_superblock *sb) {
     printf("next_inode_byte  \t%lu\n", sb->next_inode_byte);
     printf("next_data_blk    \t%lu\n", sb->next_data_blk);
     printf("next_ino         \t%lu\n", sb->next_ino);
+}
+
+void print_superblock_thin(struct hashfs_superblock *sb) {
+    printf("file count\t%lu\n", 
+        sb->inode_count - sb->free_inode_count);
+
+    // var
+    printf("next_inode_byte  \t%lu\n", sb->next_inode_byte);
+    // printf("next_data_blk    \t%lu\n", sb->next_data_blk);
+    printf("next_ino         \t%lu\n\n", sb->next_ino);
+
+    // fflush(stdout);
+}
+
+void show_sb(){
+    print_superblock_thin(get_superblock("/dev/sdb", 0));
+    print_superblock_thin(get_superblock("/dev/sdb", 1024));
+    print_superblock_thin(get_superblock("/dev/sdb", 1024 + sizeof(struct hashfs_superblock)));
 }

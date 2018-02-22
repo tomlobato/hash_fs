@@ -35,7 +35,6 @@ tests = <<CMDS
     ./util/debugfs -z /tmp/xx
     rm -rf /tmp/xx
 CMDS
-tests = ''
 
 default = <<CMDS
     cd kmod && make clean && make
@@ -44,16 +43,22 @@ default = <<CMDS
     [ -z "`grep #{dev} /proc/mounts`" ] || sudo umount #{dev}
     [ -z "`grep #{mod} /proc/modules`" ] || sudo rmmod #{mod}
 
-    ./util/mkfs #{dev} > /dev/null
+    ./script/zerofy_hd
+
+    ./util/mkfs #{dev} 
+    echo 1 > /dev/null
+
+    ./script/clear_pcache
+    ./script/dump_hd
 
     sudo insmod kmod/#{mod}.ko
     sudo mount -t #{mod} #{dev} #{mntp}
 
-    #{tests}
 CMDS
+    # #{tests}
 
 cmds = {
-    u: mku
+    "u" => mku
 }[ARGV[0]]
 
 cmds ||= default 

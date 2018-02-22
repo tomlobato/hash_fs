@@ -19,7 +19,7 @@
 #include <linux/log2.h>
 #include <linux/uaccess.h>
 #include <linux/dax.h>
-#include <linux/spinlock.h>
+// #include <linux/spinlock.h>
 
 // #define KERN_MOD
 #include "hashfs.h"
@@ -52,16 +52,19 @@ void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
                         struct hashfs_inode *hashfs_inode);
 long long hashfs_pow(long long x, long long y);
 void hashfs_save_sb(struct super_block *sb);
+
 int hashfs_unlink(struct inode * dir, struct dentry *dentry);
 
 extern struct kmem_cache *hashfs_inode_cache;
 
 // helpers
 
-#define HASHFS_DEBUG 0
+#define HASHFS_DEBUG 1
 
 void print_h_sb(char *point, struct hashfs_superblock * h_sb);
 void print_h_inode(char *point, struct hashfs_inode * ino);
+void print_h_sb_short(char *point, struct hashfs_superblock * h_sb);
+void show_sb(struct super_block *sb);
 
 #define HASH_SLOT(name, len, slot_num) (xxh32(name, len, 0) % slot_num)
 
@@ -73,6 +76,12 @@ void print_h_inode(char *point, struct hashfs_inode * ino);
         BUG_ON(!bh); \
         byte_ptr = (void *)bh->b_data + byte % sb->s_blocksize; \
     } while (0)
+
+// static inline void READ_BYTES(struct super_block *sb, struct buffer_head *bh, void *byte_ptr, uint64_t blk, uint64_t byte) {
+//     bh = sb_bread(sb, blk + byte / sb->s_blocksize);
+//     BUG_ON(!bh);
+//     byte_ptr = (void *)bh->b_data + byte % sb->s_blocksize;
+// }
 
 #if HASHFS_DEBUG
     #define deb(...) printk(KERN_DEBUG __VA_ARGS__);

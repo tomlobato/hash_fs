@@ -47,11 +47,16 @@ char *get_dev_dir(char *dev_file) {
 
 void get_dev_info(struct hashfs_superblock *sb, char *dev_file){
     char *dev_dir;
+    char path[256];
 
     dev_dir = get_dev_dir(dev_file);
 
-    sb->sector_count = get_num_from_file(join_paths(dev_dir, "size"));
-    sb->sector_size = get_num_from_file(join_paths(dev_dir, "queue/hw_sector_size"));
+    join_paths(path, dev_dir, "size");
+    sb->sector_count = get_num_from_file(path);
+
+    join_paths(path, dev_dir, "queue/hw_sector_size");
+    sb->sector_size = get_num_from_file(path);
+
     sb->device_size = sb->sector_size * sb->sector_count;
     sb->blocksize = hashfs_stat(dev_file)->st_blksize;
     sb->block_count = sb->device_size / sb->blocksize;
@@ -176,6 +181,7 @@ void mkfs(char *dev_path){
     if(close(dev_fd) == -1)
         hashfs_error("Error closing device %s.", dev_path);
 
+// show_sb();
     printf("\nHashFs created successfully.\n\n");
 }
 

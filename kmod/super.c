@@ -61,22 +61,15 @@ struct dentry *hashfs_mount(struct file_system_type *fs_type,
     return mount_bdev(fs_type, flags, dev_name, data, hashfs_fill_super);
 }
 
-inline void hashfs_save_sb(struct super_block *sb) {
+void hashfs_save_sb(struct super_block *sb) {
     struct buffer_head *bh;
-    struct hashfs_superblock *h_sb;
-    void *ptr;
+    char *sb_ptr;
 
     deb("hashfs_save_sb\n");
 
-    h_sb = HASHFS_SB(sb);
-
-    bh = sb_bread(sb, HASHFS_SUPERBLOCK_BLOCK_NO);
-    BUG_ON(!bh);
-
-    ptr = (void *)bh->b_data +
-            HASHFS_SB_OFFSET_BYTE;
- 
-    memcpy(ptr, h_sb, sizeof(struct hashfs_superblock));
+    READ_BYTES(sb, bh, sb_ptr, 
+                HASHFS_SUPERBLOCK_BLOCK_NO, HASHFS_SB_OFFSET_BYTE); 
+    memcpy(sb_ptr, HASHFS_SB(sb), sizeof(struct hashfs_superblock));
 
     FINI_BH(bh);
 }

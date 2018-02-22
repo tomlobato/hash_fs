@@ -1,9 +1,41 @@
 #include <ctype.h>
 #include "../lib/common.h"
 
-int mk = 10000;
+int mk = 100000;
 
 extern struct call_args *saved_args;
+
+void print_cpu_time() {
+    struct rusage usage;
+    getrusage (RUSAGE_SELF, &usage);
+    printf ("CPU time: %ld.%06ld sec user, %ld.%06ld sec system\n",
+        usage.ru_utime.tv_sec, usage.ru_utime.tv_usec,
+        usage.ru_stime.tv_sec, usage.ru_stime.tv_usec);
+}
+
+void print_mem(int i) {
+    struct rusage usage;
+    getrusage (RUSAGE_SELF, &usage);
+    if (i%1000000 == 0)
+        printf ("maxrss ixrss idrss isrss minflt majflt nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw i\n");
+    printf ("%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %d\n",
+        usage.ru_maxrss,        /* maximum resident set size */
+        usage.ru_ixrss,         /* integral shared memory size */
+        usage.ru_idrss,         /* integral unshared data size */
+        usage.ru_isrss,         /* integral unshared stack size */
+        usage.ru_minflt,        /* page reclaims (soft page faults) */
+        usage.ru_majflt,        /* page faults (hard page faults) */
+        usage.ru_nswap,         /* swaps */
+        usage.ru_inblock,       /* block input operations */
+        usage.ru_oublock,       /* block output operations */
+        usage.ru_msgsnd,        /* IPC messages sent */
+        usage.ru_msgrcv,        /* IPC messages received */
+        usage.ru_nsignals,      /* signals received */
+        usage.ru_nvcsw,         /* voluntary context switches */
+        usage.ru_nivcsw,         /* involuntary context switches */
+        i
+    );
+}
 
 int count_lines(char *path){
     int len,
@@ -131,20 +163,27 @@ void create(char *path){
 
 void bulk_creat(char *base_path) {
     int len;
-    char *fn;
     clock_t t;
     int mes_time = 1;
-    
-    fn = malloc(256 * sizeof(char));
+    char path[256];
+    char fn[256];
+
+    // struct hashfs_superblock *sb = get_superblock("/dev/sdb");
+    // mk = sb->inode_count;
+    // free(sb);
 
     if (mes_time) t = clock();
 
-    for(int i = 0; i < mk; i++) {
+    for(int i = 2; i < mk + 2; i++) {
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(fn, len, "%d", i);
         fn[len] = '\0';
-        create(join_paths(base_path, fn));
+        join_paths(path, base_path, fn);
+        create(path);
+        if (i%20000 == 0)
+            print_mem(i);
     }
+            print_mem(0);
 
     if (mes_time) t = clock() - t;
 
@@ -156,21 +195,24 @@ void bulk_creat(char *base_path) {
 
 void bulk_unlink(char *base_path) {
     int len;
-    char *fn;
-    char *path;
     clock_t t;
     int mes_time = 1;
     int x;
+    char path[256];
+    char fn[256];
+    // path = hashfs_malloc(sizeof(char) * (strlen(p1) + strlen(p2)) + 2);
     
-    fn = malloc(256 * sizeof(char));
+    // struct hashfs_superblock *sb = get_superblock("/dev/sdb");
+    // mk = sb->inode_count;
+    // free(sb);
 
     if (mes_time) t = clock();
 
-    for(int i = 0; i < mk; i++) {
+    for(int i = 2; i < mk + 2; i++) {
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(fn, len, "%d", i);
         fn[len] = '\0';
-        path = join_paths(base_path, fn);
+        join_paths(path, base_path, fn);
         if ((x = unlink(path)) != 0) {
             printf("error unlinking %s errno=%d x=%d\n", fn, errno, x);
         }
@@ -187,7 +229,7 @@ void bulk_unlink(char *base_path) {
 #define deb(...) printf(__VA_ARGS__);
 
 void print_h_inode(char *point, struct hashfs_inode * ino){
-    deb("----------- %s", point);
+    deb("----------- %s\n", point);
 
     deb("h_inode mode_uid_gid_idx \t %u\n", ino->mode_uid_gid_idx);
     deb("h_inode mtime \t %u\n", ino->mtime);
@@ -199,8 +241,37 @@ void print_h_inode(char *point, struct hashfs_inode * ino){
 
     deb("h_inode size \t %u \n", ino->size);
     deb("h_inode name_size \t %u \n", ino->name_size);         // bytes
+    deb("h_inode name \t %.*s \n", ino->name_size, ino->name);         // bytes
 
     deb("h_inode next \t %u\n", ino->next);
+}
+
+void print_h_inode_thin(char *prefix, struct hashfs_inode * i, int bucket_pos){
+    deb("%s ino=%u name=%.*s name_size=%u flags=%u next=%u bucket_pos=%d \n", 
+        prefix,
+        i->ino,
+        i->name_size, i->name,
+        i->name_size,
+        i->flags,
+        i->next,
+        bucket_pos
+    );
+}
+
+void print_h_inode_pos(char *pos){
+    int fd;
+    struct hashfs_inode *in = malloc(sizeof(struct hashfs_inode));
+    struct hashfs_superblock *h_sb = get_superblock("/dev/sdb", HASHFS_SB_OFFSET_BYTE);
+
+    fd = open("/dev/sdb", O_RDONLY);
+
+    lseek(fd, h_sb->inodes_offset_blk * h_sb->blocksize + atoi(pos), SEEK_SET);
+    read(fd, in, sizeof(struct hashfs_inode));
+
+    print_h_inode("\n", in);
+
+    close(fd);
+    free(in);
 }
 
 void ls(char *dev) {
@@ -309,15 +380,81 @@ void read_hash_bitmap(char *dev) {
     close(fd);
 }
 
+void show_fs(char *dev){
+    int bit_pos, bucket_pos;
+    int bitm_fd, hash_fd, ino_fd;
+    struct hashfs_inode h_inode;
+    struct hashfs_superblock *h_sb;
+    uint64_t inode_offset, hash_slot;
+    unsigned char buf;
+    unsigned long i, j;
+
+    // sb
+    h_sb = get_superblock(dev, HASHFS_SB_OFFSET_BYTE);
+    print_superblock_thin(h_sb);
+
+    // bitmap/hash/inodes
+    bitm_fd = open_dev(dev, O_RDONLY);
+    hash_fd = open_dev(dev, O_RDONLY);
+    ino_fd = open_dev(dev, O_RDONLY);
+
+    if(lseek(bitm_fd, h_sb->bitmap_offset_blk * h_sb->blocksize, SEEK_SET) == -1)
+        hashfs_error("bitmap lseek");
+
+    for(i = 0; i < h_sb->hash_len/8; i++) {
+        if (read(bitm_fd, &buf, 1) != 1)
+            hashfs_error("bitmap read");
+        if (buf == 0)
+            continue;
+        for(j = 0; j < 8; j++) {
+            bit_pos = 7 - j;
+            hash_slot = 8 * i + bit_pos;
+            if (buf & (1 << bit_pos)) {
+                if(lseek(hash_fd, h_sb->hash_offset_blk * h_sb->blocksize + h_sb->hash_slot_size * hash_slot, SEEK_SET) == -1)
+                    hashfs_error("hash lseek"); 
+                inode_offset = 0;   
+                if (read(hash_fd, &inode_offset, h_sb->hash_slot_size) != h_sb->hash_slot_size)
+                    hashfs_error("hash read");
+                printf("hash_slot=%lu inode_offset=%lu\n", hash_slot, inode_offset);
+
+                bucket_pos = 1;
+                while(1){
+                    lseek(ino_fd, h_sb->inodes_offset_blk * h_sb->blocksize + inode_offset, SEEK_SET); 
+                    read(ino_fd, &h_inode, sizeof(struct hashfs_inode));
+                    print_h_inode_thin("\t", &h_inode, bucket_pos++);
+                    if (h_inode.next)
+                        inode_offset = h_inode.next;
+                    else
+                        break;
+                }
+            }
+        }
+    }
+
+    close(bitm_fd);
+    close(hash_fd);
+    close(ino_fd);
+    free(h_sb);
+}
+
 int main (int argc, char **argv) {
   int c;
   int index;
 
   save_args(argc, argv);
 
-  while ((c = getopt (argc, argv, "x:p:n:s:c:d:f:l:w:m:z:r:ehubt")) != -1)
+  while ((c = getopt (argc, argv, "x:p:n:s:c:d:f:l:w:m:z:r:i:o:ehubtk")) != -1)
     switch (c)
       {
+      case 'k':
+        show_sb();
+        break;
+      case 'o':
+        show_fs(optarg);
+        break;
+      case 'i':
+        print_h_inode_pos(optarg);
+        break;
       case 'r':
         read_hash_bitmap(optarg);
         break;
@@ -349,7 +486,7 @@ int main (int argc, char **argv) {
         printf("%llu\n", next_prime(atoll(optarg)));
         break;
       case 's':
-        print_superblock(get_superblock(optarg));
+        print_superblock(get_superblock(optarg, HASHFS_SB_OFFSET_BYTE));
         break;
       case 'c':
         printf("%d\n", count_lines(optarg));
