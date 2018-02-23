@@ -63,7 +63,7 @@ void get_dev_info(struct hashfs_superblock *sb, char *dev_file){
 }
 
 uint64_t get_inode_count(uint64_t block_count){
-    return block_count / 4; // TODO: develop a criteria
+    return block_count / 4;
 }
 
 int get_hash_slot_size(uint64_t inode_count){
@@ -181,7 +181,6 @@ void mkfs(char *dev_path){
     if(close(dev_fd) == -1)
         hashfs_error("Error closing device %s.", dev_path);
 
-// show_sb();
     printf("\nHashFs created successfully.\n\n");
 }
 

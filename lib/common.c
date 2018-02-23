@@ -431,13 +431,9 @@ void print_superblock(struct hashfs_superblock *sb) {
 void print_superblock_thin(struct hashfs_superblock *sb) {
     printf("file count\t%lu\n", 
         sb->inode_count - sb->free_inode_count);
-
-    // var
     printf("next_inode_byte  \t%lu\n", sb->next_inode_byte);
     // printf("next_data_blk    \t%lu\n", sb->next_data_blk);
     printf("next_ino         \t%lu\n\n", sb->next_ino);
-
-    // fflush(stdout);
 }
 
 void show_sb(){

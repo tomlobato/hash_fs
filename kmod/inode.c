@@ -269,37 +269,12 @@ void move_inode_data(struct super_block *sb, uint64_t offset_from, uint64_t offs
     READ_BYTES(sb, bh_to, h_inode_to,
             HASHFS_SB(sb)->inodes_offset_blk, offset_to);
 
-    // print_h_inode("from", h_inode_from);
-    // print_h_inode("to", h_inode_to);
-
     memcpy(h_inode_to, h_inode_from, sizeof(struct hashfs_inode));
 
     mark_buffer_dirty(bh_to);
     brelse(bh_to);
     if (bh_to != bh_from) 
         brelse(bh_from);
-
-    // bh_from = NULL;
-    // bh_to = NULL;
-    // h_inode_from = NULL;
-    // h_inode_to = NULL;
-
-    // printk(KERN_DEBUG "after move \n");
-
-    // READ_BYTES(sb, bh_from, h_inode_from,
-    //         HASHFS_SB(sb)->inodes_offset_blk, offset_from);
-
-    // READ_BYTES(sb, bh_to, h_inode_to,
-    //         HASHFS_SB(sb)->inodes_offset_blk, offset_to);
-
-    // print_h_inode("from", h_inode_from);
-    // print_h_inode("to", h_inode_to);
-
-    // brelse(bh_to);
-    // if (bh_to != bh_from) 
-    //     brelse(bh_from);
-    // printk(KERN_DEBUG "finished fill hole \n");
-
 }
 
 int hashfs_fill_hole(struct super_block *sb, struct hashfs_superblock *h_sb, uint64_t deleted_inode_offset_byte)
