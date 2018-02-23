@@ -70,8 +70,7 @@ char *fmt_str(const char *format, ...);
 int is_mounted(char *dev_path);
 
 int get_words(char *fileName, void *pvt, void *pvt2, void(*func)(char *, void *, void *));
-int get_lines2(char *fileName, void *pvt, void *pvt2, void(*func)(char *, void *, void *));
-int get_lines(char *fileName, void(*func)(char *));
+int get_lines(char *fileName, void *pvt, void *pvt2, void(*func)(char *, void *, void *));
 
 struct call_args {
     int argc;

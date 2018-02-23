@@ -98,7 +98,7 @@ void test_hash_dispersion(char *path) {
     nlines = next_prime(nlines);
 
     int *count = calloc(sizeof(int), nlines);
-    get_lines2(path, count, &nlines, &calc_hash);
+    get_lines(path, count, &nlines, &calc_hash);
 
     int *a = calloc(sizeof(int), 10);
 
@@ -226,28 +226,26 @@ void bulk_unlink(char *base_path) {
     }
 }
 
-#define deb(...) printf(__VA_ARGS__);
-
 void print_h_inode(char *point, struct hashfs_inode * ino){
-    deb("----------- %s\n", point);
+    printf("----------- %s\n", point);
 
-    deb("h_inode mode_uid_gid_idx \t %u\n", ino->mode_uid_gid_idx);
-    deb("h_inode mtime \t %u\n", ino->mtime);
+    printf("h_inode mode_uid_gid_idx \t %u\n", ino->mode_uid_gid_idx);
+    printf("h_inode mtime \t %u\n", ino->mtime);
 
-    deb("h_inode flags \t %u\n", ino->flags);         // bytes
+    printf("h_inode flags \t %u\n", ino->flags);         // bytes
 
-    deb("h_inode ino \t %u\n", ino->ino);
-    deb("h_inode block \t %u\n", ino->block);       // bytes
+    printf("h_inode ino \t %u\n", ino->ino);
+    printf("h_inode block \t %u\n", ino->block);       // bytes
 
-    deb("h_inode size \t %u \n", ino->size);
-    deb("h_inode name_size \t %u \n", ino->name_size);         // bytes
-    deb("h_inode name \t %.*s \n", ino->name_size, ino->name);         // bytes
+    printf("h_inode size \t %u \n", ino->size);
+    printf("h_inode name_size \t %u \n", ino->name_size);         // bytes
+    printf("h_inode name \t %.*s \n", ino->name_size, ino->name);         // bytes
 
-    deb("h_inode next \t %u\n", ino->next);
+    printf("h_inode next \t %u\n", ino->next);
 }
 
 void print_h_inode_thin(char *prefix, struct hashfs_inode * i, int bucket_pos){
-    deb("%s ino=%u name=%.*s name_size=%u flags=%u next=%u bucket_pos=%d \n", 
+    printf("%s ino=%u name=%.*s name_size=%u flags=%u next=%u bucket_pos=%d \n", 
         prefix,
         i->ino,
         i->name_size, i->name,

@@ -268,7 +268,7 @@ char *get_bin_path(char *argv0) {
     }
 }
 
-int get_lines2(char *fileName, void *pvt, void *pvt2, void(*func)(char *, void *, void *)) {
+int get_lines(char *fileName, void *pvt, void *pvt2, void(*func)(char *, void *, void *)) {
     FILE *fp;
     long rest;
     char *buf,
@@ -318,7 +318,6 @@ int get_lines2(char *fileName, void *pvt, void *pvt2, void(*func)(char *, void *
     return 0;
 }
 
-
 int get_words(char *fileName, void *pvt, void *pvt2, void(*func)(char *, void *, void *)) {
     int fd;
     char *line;
@@ -338,24 +337,6 @@ int get_words(char *fileName, void *pvt, void *pvt2, void(*func)(char *, void *,
     }
 
     close(fd);
-    return 0;
-}
-
-int get_lines(char *fileName, void(*func)(char *)) {
-    FILE *file;
-    char *str;
-    
-    file = fopen(fileName, "r");
-    str = malloc(512 * sizeof(char));
-
-    while (fgets(str, 512, file)) {
-        str[511] = 0;
-        printf("%s\n", str);
-        (*func)(str);
-    }
-
-    fclose(file);    
-
     return 0;
 }
 

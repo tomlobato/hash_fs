@@ -5,7 +5,7 @@ ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len,
     char *buffer;
     int nbytes;
 
-    deb("hashfs_read\n");
+    hashfs_pki("hashfs_read\n");
 
     buffer = "abc123\n";
     nbytes = strlen(buffer);
@@ -19,8 +19,7 @@ ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len,
 
     if (copy_to_user(buf, "abc123X\n", nbytes)) {
         // brelse(bh);
-        printk(KERN_ERR
-               "Error copying file content to userspace buffer\n");
+        pr_err("Error copying file content to userspace buffer\n");
         return -EFAULT;
     }
 
@@ -32,7 +31,7 @@ ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len,
 
 ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len,
                       loff_t *ppos) {
-    deb("hashfs_write %.*s len=%d pos=%lu\n", (int)len, buf, (int)len, (unsigned long)*ppos);
+    hashfs_pki("hashfs_write %.*s len=%d pos=%lu\n", (int)len, buf, (int)len, (unsigned long)*ppos);
     *ppos += len;
     return len;
     // return 0;

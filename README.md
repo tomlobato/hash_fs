@@ -12,3 +12,10 @@ superblock -- hash keys bitmap -- inodes bitmap  --  data bitmap  --  hash keys 
 
 [metadata size calulations](https://docs.google.com/spreadsheets/d/1HkgOJFZwWhxS5sdxalrPe4urQfaviGriIXZLOjGbrfY/edit#gid=0)
 
+#### Refs
+
+- https://github.com/torvalds/linux/tree/master/fs/ext2
+- https://github.com/torvalds/linux/blob/master/Documentation/kernel-hacking/hacking.rst
+- https://github.com/torvalds/linux/blob/master/Documentation/kernel-hacking/hacking.rst#recipes-for-deadlock
+- https://github.com/torvalds/linux/blob/master/Documentation/kernel-hacking/hacking.rst#common-routines
+- https://stackoverflow.com/questions/16390004/change-default-console-loglevel-during-boot-up

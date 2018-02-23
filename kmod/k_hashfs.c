@@ -48,9 +48,9 @@ static int __init onload(void) {
     ret = register_filesystem(&hashfs_fs_type);
 
     if (likely(0 == ret)) {
-        printk(KERN_INFO "Sucessfully registered hashfs\n");
+        pr_info("Sucessfully registered hashfs\n");
     } else {
-        printk(KERN_ERR "Failed to register hashfs. Error code: %d\n", ret);
+        pr_err("Failed to register hashfs. Error code: %d\n", ret);
     }
 
     return ret;
@@ -63,9 +63,9 @@ static void __exit onunload(void) {
     kmem_cache_destroy(hashfs_inode_cache);
 
     if (likely(ret == 0)) {
-        printk(KERN_INFO "Sucessfully unregistered hashfs\n");
+        pr_info("Sucessfully unregistered hashfs\n");
     } else {
-        printk(KERN_ERR "Failed to unregister hashfs. Error code: %d\n", ret);
+        pr_err("Failed to unregister hashfs. Error code: %d\n", ret);
     }
 }
 

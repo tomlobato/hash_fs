@@ -35,6 +35,7 @@ tests = <<CMDS
     ./util/debugfs -z /tmp/xx
     rm -rf /tmp/xx
 CMDS
+tests = ''
 
 default = <<CMDS
     cd kmod && make clean && make
@@ -43,19 +44,18 @@ default = <<CMDS
     [ -z "`grep #{dev} /proc/mounts`" ] || sudo umount #{dev}
     [ -z "`grep #{mod} /proc/modules`" ] || sudo rmmod #{mod}
 
-    ./script/zerofy_hd
+    # ./script/zerofy_hd
 
-    ./util/mkfs #{dev} 
-    echo 1 > /dev/null
+    ./util/mkfs #{dev} > /dev/null
 
-    ./script/clear_pcache
-    ./script/dump_hd
+    # ./script/clear_pcache
+    # ./script/dump_hd
 
     sudo insmod kmod/#{mod}.ko
     sudo mount -t #{mod} #{dev} #{mntp}
 
+    #{tests}
 CMDS
-    # #{tests}
 
 cmds = {
     "u" => mku
@@ -78,9 +78,9 @@ class Maker
         cmds
             .split(/\n/)
             .map(&:strip)
+            .map{|l| l.gsub /\s*#.*$/, '' }
             .reject(&:empty?)
             .reject(&:nil?)
-            .reject{|l| l =~ /^s*#/ }
             .compact
     end
 

@@ -61,42 +61,35 @@ extern struct kmem_cache *hashfs_inode_cache;
 
 #define HASHFS_DEBUG 1
 
-void print_h_sb(char *point, struct hashfs_superblock * h_sb);
-void print_h_inode(char *point, struct hashfs_inode * ino);
-void print_h_sb_short(char *point, struct hashfs_superblock * h_sb);
-void show_sb(struct super_block *sb);
+void hashfs_print_h_sb(char *point, struct hashfs_superblock * h_sb);
+void hashfs_print_h_inode(char *point, struct hashfs_inode * ino);
+void hashfs_print_h_sb_short(char *point, struct hashfs_superblock * h_sb);
+void hashfs_show_sb(struct super_block *sb);
 
-#define HASH_SLOT(name, len, slot_num) (xxh32(name, len, 0) % slot_num)
+#define hashfs_slot(name, len, slot_num) (xxh32(name, len, 0) % slot_num)
 
 #define BIB 8
 
-#define READ_BYTES(sb, bh, byte_ptr, blk, byte) \
+#define hashfs_bread(sb, bh, byte_ptr, blk, byte) \
     do { \
         bh = sb_bread(sb, blk + byte / sb->s_blocksize); \
         BUG_ON(!bh); \
         byte_ptr = (void *)bh->b_data + byte % sb->s_blocksize; \
     } while (0)
 
-// static inline void READ_BYTES(struct super_block *sb, struct buffer_head *bh, void *byte_ptr, uint64_t blk, uint64_t byte) {
-//     bh = sb_bread(sb, blk + byte / sb->s_blocksize);
-//     BUG_ON(!bh);
-//     byte_ptr = (void *)bh->b_data + byte % sb->s_blocksize;
-// }
-
 #if HASHFS_DEBUG
-    #define deb(...) printk(KERN_DEBUG __VA_ARGS__);
+    #define hashfs_pki(...) pr_info(__VA_ARGS__);
 #else
-    #define deb(...)
+    #define hashfs_pki(...)
 #endif
 
-#define FINI_BH(bh) \
+#define hashfs_fini_bh(bh) \
     do { \
         mark_buffer_dirty(bh); \
         brelse(bh); \
     } while (0)
-        // sync_dirty_buffer(bh);
 
-#define BRELSE_IF(bh) if (bh != NULL) brelse(bh);
+#define hashfs_brelse_if(bh) if (bh != NULL) brelse(bh);
 
 static inline struct hashfs_superblock *HASHFS_SB(struct super_block *sb) {
     return sb->s_fs_info;
