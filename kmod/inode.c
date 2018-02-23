@@ -125,7 +125,6 @@ static inline int hashfs_save(struct super_block *sb, struct inode *inode, struc
         mark_buffer_dirty(bh_hkey);
 
         // save bitmap
-        deb("hash_slot % BIB = %d\n", hash_slot % BIB);
         set_bit(hash_slot % BIB, ptr_bitmap);
         mark_buffer_dirty(bh_bitmap);
     }
