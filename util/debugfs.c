@@ -1,7 +1,7 @@
 #include <ctype.h>
 #include "common.h"
 
-int mk = 100;
+int mk = 10000;
 
 extern struct call_args *saved_args;
 
