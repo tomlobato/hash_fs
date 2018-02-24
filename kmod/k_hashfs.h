@@ -1,6 +1,8 @@
 #ifndef __KHASHFS_H__
 #define __KHASHFS_H__
 
+#define pr_fmt(fmt) "%s %.*s" fmt,  __func__, 20 - (int)strlen(__func__), "                    "
+
 #include <linux/blkdev.h>
 #include <linux/buffer_head.h>
 #include <linux/fs.h>
@@ -50,7 +52,7 @@ ssize_t hashfs_write(struct file * filp, const char __user * buf, size_t len,
                        loff_t * ppos);
 void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
                         struct hashfs_inode *hashfs_inode);
-long long hashfs_pow(long long x, long long y);
+long long hashfs_int_pow(long long x, long long y);
 void hashfs_save_sb(struct super_block *sb);
 
 int hashfs_unlink(struct inode * dir, struct dentry *dentry);
@@ -78,9 +80,9 @@ void hashfs_show_sb(struct super_block *sb);
     } while (0)
 
 #if HASHFS_DEBUG
-    #define hashfs_pki(...) pr_info(__VA_ARGS__);
+    #define hashfs_trace(...) pr_info(__VA_ARGS__);
 #else
-    #define hashfs_pki(...)
+    #define hashfs_trace(...)
 #endif
 
 #define hashfs_fini_bh(bh) \

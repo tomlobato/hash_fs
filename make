@@ -39,7 +39,7 @@ CMDS
 
 # make clean && 
 default = <<CMDS
-    cd kmod && make
+    cd kmod && make clean && make
     #{mku}
 
     [ -z "`grep #{dev} /proc/mounts`" ] || sudo umount #{dev}

@@ -8,7 +8,7 @@ int hashfs_readdir(struct file *file, struct dir_context *ctx) {
     struct hashfs_inode *h_inode;
     struct hashfs_superblock *h_sb;
 
-    hashfs_pki("hashfs_readdir pos=%lld dir=%lu \n", ctx->pos, file->f_inode->i_ino);
+    hashfs_trace("--------- pos=%lld dir=%lu \n", ctx->pos, file->f_inode->i_ino);
 
     if (ctx->pos == 0) {
         dir_emit_dot(file, ctx);
@@ -33,7 +33,7 @@ int hashfs_readdir(struct file *file, struct dir_context *ctx) {
         h_sb->inodes_offset_blk, 
         inode_idx * sizeof(struct hashfs_inode));
         
-    hashfs_pki("emiting ino=%u name_size=%d name='%.*s' %p \n", 
+    hashfs_trace("emiting ino=%u name_size=%d name='%.*s' %p \n", 
         h_inode->ino, h_inode->name_size, h_inode->name_size, h_inode->name, h_inode);
     dir_emit(ctx, h_inode->name, h_inode->name_size, h_inode->ino, ftype);
 

@@ -3,7 +3,7 @@
 inline void hashfs_fill_root(struct super_block *sb, struct inode *inode,
                         struct hashfs_inode *h_inode) {
 
-    hashfs_pki("hashfs_fill_root ino=%u %p %p\n", h_inode->ino, sb, inode);
+    hashfs_trace("ino=%u %p %p\n", h_inode->ino, sb, inode);
 
     inode->i_fop = &hashfs_dir_operations;
     inode->i_mode = HASHFS_DEFAULT_MODE_DIR;
@@ -12,7 +12,7 @@ inline void hashfs_fill_root(struct super_block *sb, struct inode *inode,
 inline void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
                         struct hashfs_inode *h_inode) {
 
-    hashfs_pki("hashfs_fill_inode ino=%u %p %p\n", h_inode->ino, sb, inode);
+    hashfs_trace("ino=%u %p %p\n", h_inode->ino, sb, inode);
 
     inode->i_sb = sb;
     inode->i_ino = h_inode->ino;
@@ -41,7 +41,7 @@ static  int hashfs_save_inode(struct super_block *sb, struct hashfs_inode *h_ino
     struct buffer_head *bh_ino = NULL;
     struct hashfs_superblock *h_sb;
 
-    hashfs_pki("hashfs_save_inode name=%.*s len=%d\n", h_inode->name_size, h_inode->name, h_inode->name_size);
+    hashfs_trace("name=%.*s len=%d\n", h_inode->name_size, h_inode->name, h_inode->name_size);
 
     h_sb = HASHFS_SB(sb);
 
@@ -73,7 +73,7 @@ static inline int hashfs_save(struct super_block *sb, struct inode *inode, struc
                        *bh_bitmap = NULL, 
                        *bh_hkey = NULL;
 
-    hashfs_pki("hashfs_save %.*s dentry=%p\n", dentry->d_name.len, dentry->d_name.name, dentry);
+    hashfs_trace("name=%.*s dentry=%p\n", dentry->d_name.len, dentry->d_name.name, dentry);
 
     h_sb = HASHFS_SB(sb);
 
@@ -152,7 +152,7 @@ int hashfs_create (struct inode * dir, struct dentry * dentry, umode_t mode, boo
 	struct inode * inode;
 	int err;
 
-	hashfs_pki("hashfs_create\n");
+	hashfs_trace("");
 
 	sb = dir->i_sb;
 	inode = new_inode(sb);
@@ -193,7 +193,7 @@ struct dentry *hashfs_lookup(struct inode *dir,
     void *hash_key_ptr;
     long unsigned *ptr_bitmap = NULL;
 
-    hashfs_pki("hashfs_lookup dir=%lu fname=%.*s dentry=%p\n", dir->i_ino, 
+    hashfs_trace("--------- dir=%lu fname=%.*s dentry=%p\n", dir->i_ino, 
                 dentry->d_name.len, dentry->d_name.name, dentry);
 
     sb = dir->i_sb;
@@ -248,7 +248,7 @@ out:
 }
 
 void hashfs_destroy_inode(struct inode *inode) {
-    hashfs_pki("hashfs_destroy_inode %lu \n", inode->i_ino);
+    hashfs_trace("%lu \n", inode->i_ino);
     return;
 }
 
@@ -258,7 +258,7 @@ void hashfs_move_inode_data(struct super_block *sb, uint64_t offset_from, uint64
     struct hashfs_inode *h_inode_from,
                         *h_inode_to;
 
-    hashfs_pki("move_inode_data %llu %llu \n", offset_from, offset_to);
+    hashfs_trace("move_inode_data %llu %llu \n", offset_from, offset_to);
 
     hashfs_bread(sb, bh_from, h_inode_from,
             HASHFS_SB(sb)->inodes_offset_blk, offset_from);
@@ -293,7 +293,7 @@ int hashfs_move_inode(struct super_block *sb, struct hashfs_superblock *h_sb, ui
         walk_ino_off,
         walk_ino_off_prev;
 
-    hashfs_pki("hashfs_move_inode from_ino_off=%u to_ino_off=%u \n", from_ino_off, to_ino_off);
+    hashfs_trace("from_ino_off=%u to_ino_off=%u \n", from_ino_off, to_ino_off);
 
     hashfs_bread(sb, bh_ino_from, h_inode_from,
             h_sb->inodes_offset_blk, from_ino_off);
@@ -390,7 +390,7 @@ int hashfs_unlink(struct inode * dir, struct dentry *dentry)
         file_count,
         ino_len;
 
-    hashfs_pki("hashfs_unlink dir=%lu fname=%.*s dentry=%p\n", dir->i_ino, 
+    hashfs_trace("--------- dir=%lu fname=%.*s dentry=%p\n", dir->i_ino, 
                 dentry->d_name.len, dentry->d_name.name, dentry);
 
     sb = dir->i_sb;

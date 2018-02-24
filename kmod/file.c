@@ -5,7 +5,7 @@ ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len,
     char *buffer;
     int nbytes;
 
-    hashfs_pki("hashfs_read\n");
+    hashfs_trace("hashfs_read\n");
 
     buffer = "abc123\n";
     nbytes = strlen(buffer);
@@ -31,7 +31,7 @@ ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len,
 
 ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len,
                       loff_t *ppos) {
-    hashfs_pki("hashfs_write %.*s len=%d pos=%lu\n", (int)len, buf, (int)len, (unsigned long)*ppos);
+    hashfs_trace("%.*s len=%d pos=%lu\n", (int)len, buf, (int)len, (unsigned long)*ppos);
     *ppos += len;
     return len;
     // return 0;
