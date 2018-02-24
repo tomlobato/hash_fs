@@ -14,11 +14,12 @@
 #include <unistd.h>
 #include <uuid/uuid.h>
 
-
 #include "../../kmod/hashfs.h"
 
 #define XXH_STATIC_LINKING_ONLY
 #include "xxhash.h"
+
+#define IS_DEV
 
 #define COLOR_RESET   "\033[0m"
 #define COLOR_BLACK   "\033[30m"      /* Black */
@@ -68,9 +69,16 @@ void _hashfs_error(const char *func, int status, int errnum, const char *filenam
                         unsigned int linenum, char *msg);
 char *fmt_str(const char *format, ...);
 int is_mounted(char *dev_path);
-
 int get_words(char *fileName, void *pvt, void *pvt2, void(*func)(char *, void *, void *));
 int get_lines(char *fileName, void *pvt, void *pvt2, void(*func)(char *, void *, void *));
+void print_mem(int i);
+void print_cpu_time();
+int count_lines(char *path);
+void print_h_inode_pos(char *pos);
+void print_h_inode_thin(char *prefix, struct hashfs_inode * i, int bucket_pos);
+void print_h_inode(char *point, struct hashfs_inode * ino);
+char *get_device();
+int get_fs_inode_count();
 
 struct call_args {
     int argc;
@@ -78,3 +86,9 @@ struct call_args {
     char *bin_path;
     char *bin_name;
 };
+
+#ifdef IS_DEV
+    #define TGT_DEV "/dev/sdb" // lock for safety
+#else
+    #define TGT_DEV get_device()
+#endif

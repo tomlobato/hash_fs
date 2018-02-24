@@ -9,9 +9,9 @@ void check(char *dev_path){
     if (is_mounted(dev_path))
         hashfs_error("device %s is already mounted. Aborting.", dev_path);
 
-#ifdef ALLOW_DEVICE
-    if (strcmp(dev_path, ALLOW_DEVICE) != 0)
-        hashfs_error("device not allowed, must be %s", ALLOW_DEVICE);
+#ifdef TGT_DEV
+    if (strcmp(dev_path, TGT_DEV) != 0)
+        hashfs_error("device not allowed, must be %s", TGT_DEV);
 #endif
 }
 

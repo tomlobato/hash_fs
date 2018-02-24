@@ -218,6 +218,60 @@ void _hashfs_error(const char *func, int status, int errnum, const char *filenam
 
 // String
 
+char *get_device(){
+    // TODO: get from cmd line
+    return "TODO!";
+}
+
+int count_lines(char *path){
+    int len,
+        i,
+        count,
+        did_read,
+        rest;
+    char *buf;
+    FILE *file;
+    struct stat *stat_buf;
+
+    stat_buf = malloc(sizeof(struct stat));
+    if (stat(path, stat_buf) == -1)
+        hashfs_error("Error stat`ing %s", path);
+
+    len = stat_buf->st_blksize;
+
+    buf = malloc(len);
+    if (buf == NULL)
+        hashfs_error("Error malloc`ing");
+    
+    file = fopen(path, "r");
+    if (file == NULL)
+        hashfs_error("Error fopen`ing");
+
+    rest = stat_buf->st_size;
+    count = 0;
+
+    while(rest > 0) {
+        did_read = 0;
+        did_read = fread(buf, 1, len, file);
+
+        if (did_read != len && ferror(file))
+            hashfs_error("fread");
+
+        rest -= did_read;
+
+        for(i = 0; i < len; i++)
+            if (buf[i] == '\n')
+                count++;
+    }
+
+    if (fclose(file) != 0)
+        hashfs_error("Error fclose`ing");
+    free(stat_buf);
+    free(buf);
+
+    return count;
+}
+
 void ps(char *s){
     printf("%s\n", s);
 }
@@ -364,6 +418,17 @@ struct hashfs_superblock *get_superblock(char *dev_file, int offset){
     return sb;
 }
 
+int get_fs_inode_count(){
+    int ic;
+    struct hashfs_superblock *sb;
+    
+    sb = get_superblock("/dev/sdb", HASHFS_SB_OFFSET_BYTE);
+    ic = sb->inode_count;
+    free(sb);
+    
+    return ic;
+}
+
 void print_superblock(struct hashfs_superblock *sb) {    
     printf("disk size\t%.2lf GB\n", 
         (double)sb->device_size / pow(2, 30));
@@ -421,4 +486,84 @@ void show_sb(){
     print_superblock_thin(get_superblock("/dev/sdb", 0));
     print_superblock_thin(get_superblock("/dev/sdb", 1024));
     print_superblock_thin(get_superblock("/dev/sdb", 1024 + sizeof(struct hashfs_superblock)));
+}
+
+void print_h_inode(char *point, struct hashfs_inode * ino){
+    printf("----------- %s\n", point);
+
+    printf("h_inode mode_uid_gid_idx \t %u\n", ino->mode_uid_gid_idx);
+    printf("h_inode mtime \t %u\n", ino->mtime);
+
+    printf("h_inode flags \t %u\n", ino->flags);         // bytes
+
+    printf("h_inode ino \t %u\n", ino->ino);
+    printf("h_inode block \t %u\n", ino->block);       // bytes
+
+    printf("h_inode size \t %u \n", ino->size);
+    printf("h_inode name_size \t %u \n", ino->name_size);         // bytes
+    printf("h_inode name \t %.*s \n", ino->name_size, ino->name);         // bytes
+
+    printf("h_inode next \t %u\n", ino->next);
+}
+
+void print_h_inode_thin(char *prefix, struct hashfs_inode * i, int bucket_pos){
+    printf("%s ino=%u name=%.*s name_size=%u flags=%u next=%u bucket_pos=%d \n", 
+        prefix,
+        i->ino,
+        i->name_size, i->name,
+        i->name_size,
+        i->flags,
+        i->next,
+        bucket_pos
+    );
+}
+
+void print_h_inode_pos(char *pos){
+    int fd;
+    struct hashfs_inode *in = malloc(sizeof(struct hashfs_inode));
+    struct hashfs_superblock *h_sb = get_superblock("/dev/sdb", HASHFS_SB_OFFSET_BYTE);
+
+    fd = open("/dev/sdb", O_RDONLY);
+
+    lseek(fd, h_sb->inodes_offset_blk * h_sb->blocksize + atoi(pos), SEEK_SET);
+    read(fd, in, sizeof(struct hashfs_inode));
+
+    print_h_inode("\n", in);
+
+    close(fd);
+    free(in);
+}
+
+// System
+
+void print_cpu_time() {
+    struct rusage usage;
+    getrusage (RUSAGE_SELF, &usage);
+    printf ("CPU time: %ld.%06ld sec user, %ld.%06ld sec system\n",
+        usage.ru_utime.tv_sec, usage.ru_utime.tv_usec,
+        usage.ru_stime.tv_sec, usage.ru_stime.tv_usec);
+}
+
+void print_mem(int i) {
+    struct rusage usage;
+    getrusage (RUSAGE_SELF, &usage);
+    if (i%1000000 == 0)
+        printf ("maxrss ixrss idrss isrss minflt majflt nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw i\n");
+    printf ("%ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %ld %d\n",
+        usage.ru_maxrss,        /* maximum resident set size */
+        usage.ru_ixrss,         /* integral shared memory size */
+        usage.ru_idrss,         /* integral unshared data size */
+        usage.ru_isrss,         /* integral unshared stack size */
+        usage.ru_minflt,        /* page reclaims (soft page faults) */
+        usage.ru_majflt,        /* page faults (hard page faults) */
+        usage.ru_nswap,         /* swaps */
+        usage.ru_inblock,       /* block input operations */
+        usage.ru_oublock,       /* block output operations */
+        usage.ru_msgsnd,        /* IPC messages sent */
+        usage.ru_msgrcv,        /* IPC messages received */
+        usage.ru_nsignals,      /* signals received */
+        usage.ru_nvcsw,         /* voluntary context switches */
+        usage.ru_nivcsw,         /* involuntary context switches */
+        i
+    );
 }

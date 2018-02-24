@@ -9,14 +9,17 @@ mntp = "/mnt/storage"
 mku = 'cd util && make clean && make'
 
 tests = <<CMDS
-    touch /mnt/storage/nmnm
-    touch /mnt/storage/abcd
-    touch /mnt/storage/xyzk
-    umount /mnt/storage
+    touch #{mntp}/nmnm
+    touch #{mntp}/abcd
+    touch #{mntp}/xyzk
+    umount #{mntp}
     sudo mount -t #{mod} #{dev} #{mntp}
-    ls /mnt/storage/nmnm
-    ls /mnt/storage/abcd
-    ls /mnt/storage/xyzk
+    ls #{mntp}/nmnm
+    ls #{mntp}/abcd
+    ls #{mntp}/xyzk
+    rm #{mntp}/nmnm
+    rm #{mntp}/abcd
+    rm #{mntp}/xyzk
 
     ls #{mntp}
     touch #{mntp}/x7x7x7
@@ -26,18 +29,13 @@ tests = <<CMDS
 
     sudo mount -t #{mod} #{dev} #{mntp}
     ls #{mntp}/x7x7x7
+    rm #{mntp}/x7x7x7
+
+    bash ./helpers/test.sh
 
     ./util/debugfs -m #{mntp}
     ./util/debugfs -z #{mntp}
-
-    mkdir /tmp/xx
-    ./util/debugfs -m /tmp/xx
-    ./util/debugfs -z /tmp/xx
-    rm -rf /tmp/xx
-
-    # hexdump -s 976 -n 2500000 -C $dev
 CMDS
-tests = ''
 
 default = <<CMDS
     cd kmod && make clean && make
@@ -52,6 +50,7 @@ default = <<CMDS
 
     # ./helpers/clear_pcache
     # ./helpers/dump_hd
+    # hexdump -s 976 -n 2500000 -C $dev
 
     sudo insmod kmod/#{mod}.ko
     sudo mount -t #{mod} #{dev} #{mntp}
