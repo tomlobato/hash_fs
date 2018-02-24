@@ -50,7 +50,6 @@ int open_dev(char *dev_path, int flags);
 long long get_num_from_file(char *path);
 struct hashfs_superblock *get_superblock(char *dev_file, int offset);
 struct stat *hashfs_stat(char *path);
-uint64_t divceil(uint64_t x, uint64_t y);
 unsigned int hash(char *str);
 unsigned long long next_prime(unsigned long long i);
 void *_hashfs_calloc(char *file, long line, size_t nmemb, size_t size);

@@ -72,3 +72,6 @@ struct hashfs_inode {
 
 #define HASHFS_SIZE_LEN sizeof(((struct hashfs_inode *)0)->size)
 #define HASHFS_NAME_LEN sizeof(((struct hashfs_inode *)0)->name)
+
+// Util
+#define divceil(x, y) x / y + (x % y ? 1 : 0)

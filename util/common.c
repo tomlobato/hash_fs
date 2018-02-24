@@ -57,11 +57,6 @@ uint8_t *mk_uuid(){
     return uuid;
 }
 
-inline uint64_t divceil(uint64_t x, uint64_t y){
-    return x / y + 
-           (x % y ? 1 : 0);
-}
-
 // File
 
 long long get_num_from_file(char *path) {

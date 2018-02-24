@@ -1,7 +1,7 @@
 #include <ctype.h>
 #include "common.h"
 
-int mk = 10000;
+int mk = 1000000;
 
 extern struct call_args *saved_args;
 
@@ -298,6 +298,7 @@ void usage(){
 }
 
 void test(char *arg1) {
+    printf("asd" "qwe" "%d\n", 45);
 }
 
 int main (int argc, char **argv) {
