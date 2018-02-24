@@ -14,12 +14,10 @@
 #include <unistd.h>
 #include <uuid/uuid.h>
 
-#include "../../kmod/hashfs.h"
+#include "../kmod/hashfs.h"
 
 #define XXH_STATIC_LINKING_ONLY
-#include "xxhash.h"
-
-#define IS_DEV
+#include "lib/xxhash.h"
 
 #define COLOR_RESET   "\033[0m"
 #define COLOR_BLACK   "\033[30m"      /* Black */
@@ -86,6 +84,8 @@ struct call_args {
     char *bin_path;
     char *bin_name;
 };
+
+#define IS_DEV
 
 #ifdef IS_DEV
     #define TGT_DEV "/dev/sdb" // lock for safety

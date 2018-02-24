@@ -37,8 +37,9 @@ tests = <<CMDS
     ./util/debugfs -z #{mntp}
 CMDS
 
+# make clean && 
 default = <<CMDS
-    cd kmod && make clean && make
+    cd kmod && make
     #{mku}
 
     [ -z "`grep #{dev} /proc/mounts`" ] || sudo umount #{dev}
@@ -55,8 +56,8 @@ default = <<CMDS
     sudo insmod kmod/#{mod}.ko
     sudo mount -t #{mod} #{dev} #{mntp}
 
-    #{tests}
 CMDS
+    #{tests}
 
 cmds = {
     "u" => mku

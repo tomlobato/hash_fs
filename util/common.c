@@ -507,11 +507,10 @@ void print_h_inode(char *point, struct hashfs_inode * ino){
 }
 
 void print_h_inode_thin(char *prefix, struct hashfs_inode * i, int bucket_pos){
-    printf("%s ino=%u name=%.*s name_size=%u flags=%u next=%u bucket_pos=%d \n", 
+    printf("%s ino=%u name=%.*s flg=%u nxt=%u pos=%d \n", 
         prefix,
         i->ino,
         i->name_size, i->name,
-        i->name_size,
         i->flags,
         i->next,
         bucket_pos

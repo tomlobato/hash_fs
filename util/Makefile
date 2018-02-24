@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall
-LIBS = lib/xxhash.c lib/common.c -lm -luuid
+LIBS = lib/xxhash.c common.c -lm -luuid
 
 all: mkfs debugfs fsck
 

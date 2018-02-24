@@ -68,7 +68,7 @@ static inline int hashfs_save(struct super_block *sb, struct inode *inode, struc
     void *ptr_hash_key;
     long unsigned *ptr_bitmap;
     int ret = 0;
-    uint64_t inode_offset_byte = 0;
+    uint64_t del_ino_off = 0;
     struct buffer_head *bh_ino = NULL, 
                        *bh_bitmap = NULL, 
                        *bh_hkey = NULL;
@@ -102,14 +102,14 @@ static inline int hashfs_save(struct super_block *sb, struct inode *inode, struc
         h_sb->hash_offset_blk, hash_slot * h_sb->hash_slot_size);
 
     if (test_bit(hash_slot % BIB, ptr_bitmap)) {
-        memcpy(&inode_offset_byte, ptr_hash_key, h_sb->hash_slot_size);
+        memcpy(&del_ino_off, ptr_hash_key, h_sb->hash_slot_size);
 
         while (1) {
             if (bh_ino != NULL) brelse(bh_ino);
             hashfs_bread(sb, bh_ino, bucket_h_inode, 
-                h_sb->inodes_offset_blk, inode_offset_byte);
+                h_sb->inodes_offset_blk, del_ino_off);
             if (bucket_h_inode->flags & HASHFS_INO_FLAG_MORE_IN_BUCKET) {
-                inode_offset_byte = bucket_h_inode->next;
+                del_ino_off = bucket_h_inode->next;
             } else {
                 break;
             }
@@ -189,7 +189,7 @@ struct dentry *hashfs_lookup(struct inode *dir,
     struct buffer_head *bh_bitm = NULL, 
                         *bh_hash = NULL, 
                         *bh_ino = NULL;
-    uint64_t hash_slot, inode_offset_byte = 0;
+    uint64_t hash_slot, del_ino_off = 0;
     void *hash_key_ptr;
     long unsigned *ptr_bitmap = NULL;
 
@@ -211,12 +211,12 @@ struct dentry *hashfs_lookup(struct inode *dir,
     // hash
     hashfs_bread(sb, bh_hash, hash_key_ptr, 
                 h_sb->hash_offset_blk, hash_slot * h_sb->hash_slot_size);
-    memcpy(&inode_offset_byte, hash_key_ptr, h_sb->hash_slot_size);
+    memcpy(&del_ino_off, hash_key_ptr, h_sb->hash_slot_size);
 
     // inode
     while (1) {        
         hashfs_bread(sb, bh_ino, h_inode, 
-            h_sb->inodes_offset_blk, inode_offset_byte);
+            h_sb->inodes_offset_blk, del_ino_off);
 
         if (h_inode->name_size == dentry->d_name.len &&
             strncmp(h_inode->name, dentry->d_name.name, dentry->d_name.len) == 0) {
@@ -226,7 +226,7 @@ struct dentry *hashfs_lookup(struct inode *dir,
                 goto out;
         } else {
             if (h_inode->flags & HASHFS_INO_FLAG_MORE_IN_BUCKET) {
-                inode_offset_byte = h_inode->next;
+                del_ino_off = h_inode->next;
                 brelse(bh_ino);
             } else {
                 goto out;
@@ -255,7 +255,7 @@ void hashfs_destroy_inode(struct inode *inode) {
     return;
 }
 
-void move_inode_data(struct super_block *sb, uint64_t offset_from, uint64_t offset_to){
+void hashfs_move_inode_data(struct super_block *sb, uint64_t offset_from, uint64_t offset_to){
     struct buffer_head *bh_from = NULL, 
                        *bh_to = NULL;
     struct hashfs_inode *h_inode_from,
@@ -277,7 +277,7 @@ void move_inode_data(struct super_block *sb, uint64_t offset_from, uint64_t offs
         brelse(bh_from);
 }
 
-int hashfs_fill_hole(struct super_block *sb, struct hashfs_superblock *h_sb, uint64_t deleted_inode_offset_byte)
+int hashfs_move_inode(struct super_block *sb, struct hashfs_superblock *h_sb, uint64_t last_ino_off, uint64_t del_ino_off)
 {
 	int err;
     struct hashfs_inode *h_inode_walk, 
@@ -292,17 +292,14 @@ int hashfs_fill_hole(struct super_block *sb, struct hashfs_superblock *h_sb, uin
     void *hash_key_ptr;
     long unsigned *ptr_bitmap;
     int pos_in_bucket;
-    int inode_offset_byte_prev = -1, 
-        inode_offset_byte = 0,
-        last_inode_offset_byte;
+    int last_ino_off_prev = -1;
 
-    hashfs_pki("hashfs_fill_hole deleted_inode_offset_byte=%llu \n", deleted_inode_offset_byte);
+    hashfs_pki("hashfs_move_inode last_ino_off=%llu del_ino_off=%llu \n", last_ino_off, del_ino_off);
 
-    last_inode_offset_byte = h_sb->next_inode_byte - sizeof(struct hashfs_inode);
-    move_inode_data(sb, last_inode_offset_byte, deleted_inode_offset_byte);
+    hashfs_move_inode_data(sb, last_ino_off, del_ino_off);
 
     hashfs_bread(sb, bh_ino_last, h_inode_last,
-            h_sb->inodes_offset_blk, last_inode_offset_byte);
+            h_sb->inodes_offset_blk, last_ino_off);
 
     // Walk to inode
 
@@ -320,7 +317,7 @@ int hashfs_fill_hole(struct super_block *sb, struct hashfs_superblock *h_sb, uin
     // hash
     hashfs_bread(sb, bh_hash, hash_key_ptr, 
                 h_sb->hash_offset_blk, hash_slot * h_sb->hash_slot_size);
-    memcpy(&inode_offset_byte, hash_key_ptr, h_sb->hash_slot_size);
+    memcpy(&del_ino_off, hash_key_ptr, h_sb->hash_slot_size);
 
     pos_in_bucket = 1;
 
@@ -328,7 +325,7 @@ int hashfs_fill_hole(struct super_block *sb, struct hashfs_superblock *h_sb, uin
     while (1) {
         hashfs_brelse_if(bh_ino_walk);
         hashfs_bread(sb, bh_ino_walk, h_inode_walk, 
-            h_sb->inodes_offset_blk, inode_offset_byte);
+            h_sb->inodes_offset_blk, del_ino_off);
 
         if (h_inode_walk->name_size == h_inode_last->name_size &&
             strncmp(h_inode_walk->name, h_inode_last->name, h_inode_walk->name_size) == 0) 
@@ -337,8 +334,8 @@ int hashfs_fill_hole(struct super_block *sb, struct hashfs_superblock *h_sb, uin
         } else {
             if (h_inode_walk->flags & HASHFS_INO_FLAG_MORE_IN_BUCKET) {
                 pos_in_bucket++;
-                inode_offset_byte_prev = inode_offset_byte;
-                inode_offset_byte = h_inode_walk->next;
+                last_ino_off_prev = del_ino_off;
+                del_ino_off = h_inode_walk->next;
             } else {
                 err = ENOENT;
                 goto out;
@@ -350,12 +347,12 @@ move:
 
     // update prev inode or hash key
     if (pos_in_bucket == 1) {
-        memcpy(hash_key_ptr, &deleted_inode_offset_byte, h_sb->hash_slot_size);
+        memcpy(hash_key_ptr, &del_ino_off, h_sb->hash_slot_size);
         mark_buffer_dirty(bh_hash);
     } else {
         hashfs_bread(sb, bh_ino_prev, h_inode_prev, 
-            h_sb->inodes_offset_blk, inode_offset_byte_prev);
-        h_inode_prev->next = deleted_inode_offset_byte;
+            h_sb->inodes_offset_blk, last_ino_off_prev);
+        h_inode_prev->next = del_ino_off;
         mark_buffer_dirty(bh_ino_prev);
     }
 
@@ -384,10 +381,13 @@ int hashfs_unlink(struct inode * dir, struct dentry *dentry)
     void *hash_key_ptr;
     long unsigned *ptr_bitmap;
     int pos_in_bucket;
-    int inode_offset_byte_prev = -1, 
-        inode_offset_byte = 0,
+    int del_ino_off_prev = -1, 
+        del_ino_off = 0,
         more_in_bucket,
-        next;
+        next,
+        last_ino_off,
+        file_count,
+        ino_len;
 
     hashfs_pki("hashfs_unlink dir=%lu fname=%.*s dentry=%p\n", dir->i_ino, 
                 dentry->d_name.len, dentry->d_name.name, dentry);
@@ -416,7 +416,7 @@ int hashfs_unlink(struct inode * dir, struct dentry *dentry)
     // hash
     hashfs_bread(sb, bh_hash, hash_key_ptr, 
                 h_sb->hash_offset_blk, hash_slot * h_sb->hash_slot_size);
-    memcpy(&inode_offset_byte, hash_key_ptr, h_sb->hash_slot_size);
+    memcpy(&del_ino_off, hash_key_ptr, h_sb->hash_slot_size);
 
     pos_in_bucket = 1;
 
@@ -424,7 +424,7 @@ int hashfs_unlink(struct inode * dir, struct dentry *dentry)
     while (1) {
         if (bh_ino != NULL) brelse(bh_ino);
         hashfs_bread(sb, bh_ino, h_inode, 
-            h_sb->inodes_offset_blk, inode_offset_byte);
+            h_sb->inodes_offset_blk, del_ino_off);
 
         if (
             h_inode->name_size == dentry->d_name.len &&
@@ -438,8 +438,8 @@ int hashfs_unlink(struct inode * dir, struct dentry *dentry)
         } else {
             if (h_inode->flags & HASHFS_INO_FLAG_MORE_IN_BUCKET) {
                 pos_in_bucket++;
-                inode_offset_byte_prev = inode_offset_byte;
-                inode_offset_byte = h_inode->next;
+                del_ino_off_prev = del_ino_off;
+                del_ino_off = h_inode->next;
             } else {
                 err = ENOENT;
                 goto out;
@@ -463,7 +463,7 @@ delete:
         next = h_inode->next;
         brelse(bh_ino);
         hashfs_bread(sb, bh_ino, h_inode, 
-            h_sb->inodes_offset_blk, inode_offset_byte_prev);
+            h_sb->inodes_offset_blk, del_ino_off_prev);
         if (more_in_bucket) {
             h_inode->next = next;
             h_inode->flags |= HASHFS_INO_FLAG_MORE_IN_BUCKET;
@@ -476,22 +476,31 @@ delete:
     // update free_inode_count
     h_sb->free_inode_count++;
 
-    // fill hole left by the deleted inode
-    if (h_sb->inode_count - h_sb->free_inode_count > 0 &&
-        inode_offset_byte < h_sb->next_inode_byte - sizeof(struct hashfs_inode))
-    {
-        if (hashfs_fill_hole(sb, h_sb, inode_offset_byte))
-            pr_warn("HashFS: error moving last inode to vacant position.");
-        else
-            h_sb->next_inode_byte -= sizeof(struct hashfs_inode);
-    }
+    // update on disk sb
 
-    // reset on disk sb if has no more files
-    if (h_sb->free_inode_count == h_sb->inode_count) {
+    file_count = h_sb->inode_count - h_sb->free_inode_count;
+    ino_len = sizeof(struct hashfs_inode);
+    last_ino_off = h_sb->next_inode_byte - ino_len;
+
+    if (file_count == 0) {
         h_sb->next_ino        = HASHFS_ROOTDIR_INODE_NO + 1;
         h_sb->next_data_blk   = 0;
         h_sb->next_inode_byte = 0;
+
+    } else {
+        if (del_ino_off == last_ino_off) {
+            h_sb->next_inode_byte -= ino_len;
+
+        } else if (del_ino_off < last_ino_off) {
+            if (hashfs_move_inode(sb, h_sb, last_ino_off, del_ino_off))
+                pr_warn("HashFS: error moving last inode to vacant position %d.", del_ino_off);
+            else
+                h_sb->next_inode_byte -= ino_len;
+
+        } else 
+                pr_err("HashFS: invalid inode offset %d (bigger than last %d).", del_ino_off, last_ino_off);
     }
+
     hashfs_save_sb(sb);
 
     // update kernel sb in memory  

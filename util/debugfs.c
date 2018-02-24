@@ -1,7 +1,7 @@
 #include <ctype.h>
-#include "lib/common.h"
+#include "common.h"
 
-int mk = 10000;
+int mk = 100;
 
 extern struct call_args *saved_args;
 
@@ -118,6 +118,7 @@ void bulk_unlink(char *base_path) {
 
     if (mes_time) t = clock();
 
+    // for(int i = mk + 1; i > 1; i--) {
     for(int i = 2; i < mk + 2; i++) {
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(fn, len, "%d", i);
@@ -269,7 +270,7 @@ void show_fs(char *dev){
                 inode_offset = 0;   
                 if (read(hash_fd, &inode_offset, h_sb->hash_slot_size) != h_sb->hash_slot_size)
                     hashfs_error("hash read");
-                printf("hash_slot=%lu inode_offset=%lu\n", hash_slot, inode_offset);
+                printf("slot=%lu ino_off=%lu", hash_slot, inode_offset);
 
                 bucket_pos = 1;
                 while(1){
