@@ -1,5 +1,5 @@
 #include <ctype.h>
-#include "../lib/common.h"
+#include "lib/common.h"
 
 int mk = 100000;
 

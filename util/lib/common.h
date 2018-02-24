@@ -15,7 +15,7 @@
 #include <uuid/uuid.h>
 
 
-#include "../kmod/hashfs.h"
+#include "../../kmod/hashfs.h"
 
 #define XXH_STATIC_LINKING_ONLY
 #include "xxhash.h"

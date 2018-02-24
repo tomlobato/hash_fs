@@ -44,7 +44,6 @@
         "**/*.ko": true,
         "**/.smbdelete*": true,
         "**/Module.symvers": true,
-        "lib/test": true,
         "**/._*": true,
         "tempCodeRunnerFile": true,
         "util/mkfs": true,

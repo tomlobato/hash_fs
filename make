@@ -34,6 +34,8 @@ tests = <<CMDS
     ./util/debugfs -m /tmp/xx
     ./util/debugfs -z /tmp/xx
     rm -rf /tmp/xx
+
+    # hexdump -s 976 -n 2500000 -C $dev
 CMDS
 tests = ''
 
@@ -44,12 +46,12 @@ default = <<CMDS
     [ -z "`grep #{dev} /proc/mounts`" ] || sudo umount #{dev}
     [ -z "`grep #{mod} /proc/modules`" ] || sudo rmmod #{mod}
 
-    # ./script/zerofy_hd
+    # ./helpers/zerofy_hd
 
     ./util/mkfs #{dev} > /dev/null
 
-    # ./script/clear_pcache
-    # ./script/dump_hd
+    # ./helpers/clear_pcache
+    # ./helpers/dump_hd
 
     sudo insmod kmod/#{mod}.ko
     sudo mount -t #{mod} #{dev} #{mntp}
