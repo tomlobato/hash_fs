@@ -61,12 +61,14 @@ extern struct kmem_cache *hashfs_inode_cache;
 
 // helpers
 
-#define HASHFS_DEBUG 0
+#define HASHFS_DEBUG 1
 
 void hashfs_print_h_sb(char *point, struct hashfs_superblock * h_sb);
 void hashfs_print_h_inode(char *point, struct hashfs_inode * ino);
 void hashfs_print_h_sb_short(char *point, struct hashfs_superblock * h_sb);
 void hashfs_show_sb(struct super_block *sb);
+uint64_t _pcache_vs_disk(struct super_block *sb, struct hashfs_superblock *h_sb, int bnum, int *pos);
+void pcache_vs_disk(struct super_block *sb, struct hashfs_superblock *h_sb);
 
 #define hashfs_slot(name, len, slot_num) (xxh32(name, len, 0) % slot_num)
 

@@ -3,37 +3,41 @@
 ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len,
                      loff_t *ppos) {
     char *buffer;
-    int nbytes;
+    int buffer_len;
 
-    hashfs_trace("hashfs_read\n");
+    hashfs_trace("len=%d pos=%lu\n", (int)len, (unsigned long)*ppos);
 
     buffer = "abc123\n";
-    nbytes = strlen(buffer);
+    buffer_len = strlen(buffer);
 
-    if (*ppos >= nbytes) {
-        return 0;
-    }
+    // if (*ppos >= buffer_len) {
+    //     return 0;
+    // }
 
     // buffer = (char *)bh->b_data + *ppos;
     // nbytes = min((size_t)(hellofs_inode->file_size - *ppos), len);
 
-    if (copy_to_user(buf, "abc123X\n", nbytes)) {
+    if (copy_to_user(buf, buffer, buffer_len)) {
         // brelse(bh);
         pr_err("Error copying file content to userspace buffer\n");
         return -EFAULT;
     }
 
-    *ppos += nbytes;
-    return nbytes;
-
-    return 0;
+    *ppos += buffer_len;
+    return buffer_len;
 }
 
 ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len,
                       loff_t *ppos) {
-    hashfs_trace("%.*s len=%d pos=%lu\n", (int)len, buf, (int)len, (unsigned long)*ppos);
-    *ppos += len;
-    return len;
-    // return 0;
+    int feed = 100;
+
+    hashfs_trace("len=%d pos=%lu data='%.*s' \n", (int)len, (unsigned long)*ppos, 
+        (int)(len < 20 ? len : 20), buf);
+
+    feed = len < feed ? len : feed;
+
+    *ppos += feed;
+
+    return feed;
 }
 

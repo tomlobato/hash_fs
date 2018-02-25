@@ -200,6 +200,8 @@ struct dentry *hashfs_lookup(struct inode *dir,
     sb = dir->i_sb;
     h_sb = HASHFS_SB(sb);
 
+    pcache_vs_disk(sb, h_sb);
+
     hash_slot = hashfs_slot(dentry->d_name.name, 
                             dentry->d_name.len, h_sb->hash_len);
 

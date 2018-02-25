@@ -1,18 +1,13 @@
 CC = gcc
 CFLAGS = -Wall
-LIBS = lib/xxhash.c common.c -lm -luuid
+LLIBS= lib/xxhash.c common.c
+LIBS = $(LLIBS) -lm -luuid
+EXEC = mkfs debugfs fsck
 
-all: mkfs debugfs fsck
+all: $(EXEC)
 
-mkfs:
-	$(CC) $(CFLAGS) $(LIBS) -o mkfs mkfs.c
-
-debugfs:
-	$(CC) $(CFLAGS) $(LIBS) -o debugfs debugfs.c
-
-fsck:
-	$(CC) $(CFLAGS) $(LIBS) -o fsck fsck.c
+$(EXEC): %: %.c $(LLIBS) common.h
+	$(CC) $(CFLAGS) $(LIBS) $< -o $@
 
 clean:
-	rm -f *.o mkfs debugfs fsck
-
+	rm -f *.o $(EXEC)

@@ -1,7 +1,7 @@
 #include <ctype.h>
 #include "common.h"
 
-int mk = 1000000;
+int bulk_num = 10000;
 
 extern struct call_args *saved_args;
 
@@ -89,7 +89,7 @@ void bulk_creat(char *base_path) {
 
     if (mes_time) t = clock();
 
-    for(int i = 2; i < mk + 2; i++) {
+    for(int i = 2; i < bulk_num + 2; i++) {
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(fn, len, "%d", i);
         fn[len] = '\0';
@@ -119,7 +119,7 @@ void bulk_unlink(char *base_path) {
     if (mes_time) t = clock();
 
     // for(int i = mk + 1; i > 1; i--) {
-    for(int i = 2; i < mk + 2; i++) {
+    for(int i = 2; i < bulk_num + 2; i++) {
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(fn, len, "%d", i);
         fn[len] = '\0';
@@ -192,7 +192,7 @@ void fill(char *dev) {
     h_sb = malloc(sizeof(struct hashfs_superblock));
     read(fd, h_sb, sizeof(struct hashfs_superblock));
 
-    h_sb->free_inode_count = h_sb->free_inode_count - mk;
+    h_sb->free_inode_count = h_sb->free_inode_count - bulk_num;
 
     lseek(fd, HASHFS_SB_OFFSET_BYTE, SEEK_SET);
     write(fd, h_sb, sizeof(struct hashfs_superblock));
@@ -202,7 +202,7 @@ void fill(char *dev) {
 
     i = 0;
 
-    while (i++ < mk) {
+    while (i++ < bulk_num) {
         len = snprintf(NULL, 0, "%d", i) + 1;
         snprintf(h_inode.name, len, "%d", i);
         h_inode.name_size = len;
