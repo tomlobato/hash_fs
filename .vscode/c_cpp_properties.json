@@ -3,15 +3,7 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceRoot}/kmod",
-                "${workspaceRoot}/util",
-                "${workspaceRoot}/util/lib",
-                "${workspaceRoot}/util/lib/include_linux",
-                "${workspaceRoot}/util/lib/include_linux_arch_x86/uapi",
-                "${workspaceRoot}/util/lib/include_usr",
-                "${workspaceRoot}/util/lib/include_gcc_x86_64-linux-gnu",
-                "${workspaceRoot}/util/lib/include_linux_arch_x86",
-                "${workspaceRoot}/util/lib/include_usr/x86_64-linux-gnu"
+                "${workspaceRoot}"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
