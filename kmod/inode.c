@@ -40,7 +40,7 @@ static  int hashfs_save_inode(struct super_block *sb, struct hashfs_inode *h_ino
     void *ptr_ino = NULL;
     struct buffer_head *bh_ino = NULL;
     struct hashfs_superblock *h_sb;
-
+    
     hashfs_trace("name=%.*s len=%d\n", h_inode->name_size, h_inode->name, h_inode->name_size);
 
     h_sb = HASHFS_SB(sb);

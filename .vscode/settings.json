@@ -1,34 +1,9 @@
 {
-    // C/C++
-    // "C_Cpp.intelliSenseEngine": "Default",
-    // "C_Cpp.autocomplete": "Default",
-    // "C_Cpp.intelliSenseEngineFallback": "Enabled",
-    // "C_Cpp.formatting": "Default",
+    "C_Cpp.intelliSenseEngineFallback": "Disabled",
     "C_Cpp.loggingLevel": "Information",
-    "C_Cpp.intelliSenseEngineFallback": "Enabled",
-
-    // "editor.quickSuggestions": { 
-    //     "other": true, 
-    //     "comments": true, 
-    //     "strings": true 
-    // },
-
-    // "editor.wordBasedSuggestions": true,
-
-    "files.associations": {
-        "*.h": "c"
-    },
-
     "git.enabled": false,
     "editor.find.autoFindInSelection": true,
-    "workbench.editor.showIcons": true,
-    "workbench.iconTheme": "vs-seti",
-    "explorer.confirmDelete": false,
-    "extensions.ignoreRecommendations": false,
     "workbench.colorTheme": "Monokai",
-    "editor.minimap.enabled": false,
-    "editor.wordWrap": "on",
-    "window.zoomLevel": 0,
     "files.exclude": {
         "**/.git": true,
         "**/.svn": true,
@@ -50,5 +25,8 @@
         "util/debugfs": true,
         "util/fsck": true,
         "a.out": true
-    }
+    },
+    "files.associations": {
+        "*.h": "c"
+    },
 }
