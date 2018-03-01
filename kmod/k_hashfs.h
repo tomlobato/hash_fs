@@ -99,5 +99,14 @@ static inline struct hashfs_superblock *HASHFS_SB(struct super_block *sb) {
     return sb->s_fs_info;
 }
 
+static inline struct hashfs_inode *HASHFS_INODE(struct inode *inode) {
+    return inode->i_private;
+}
+
+static inline int hashfs_has_data(struct hashfs_inode *h_inode) {
+    return h_inode->flags & HASHFS_INO_FLAG_HAS_DATA;
+}
+
+
 #endif /*__KHASHFS_H__*/
 
