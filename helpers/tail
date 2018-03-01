@@ -1,2 +1,4 @@
 #!/bin/bash
-tail -f /var/log/kern.log|cut -b 54-
+tail -f /var/log/kern.log | \
+    cut -b 49- 
+    # | sed -e "s/^hashfs_//"

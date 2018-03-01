@@ -9,14 +9,13 @@ static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
 
     hashfs_trace("data=%s\n", (char *)data);
 
-    bh = sb_bread(sb, HASHFS_SUPERBLOCK_BLOCK_NO);
+    bh = sb_bread(sb, HASHFS_SB_BLOCK_NO);
     BUG_ON(!bh);
 
-    bh->b_data += HASHFS_SB_OFFSET_BYTE;
-    hashfs_sb = (struct hashfs_superblock *)bh->b_data;
+    hashfs_sb = (struct hashfs_superblock *)(bh->b_data + HASHFS_SB_OFFSET_BYTE);
 
     if (unlikely(hashfs_sb->magic != HASHFS_MAGIC)) {
-        printk(KERN_ERR "Magic number mismatch: %llu != %llu..\n", hashfs_sb->magic, (uint64_t)HASHFS_MAGIC);
+        printk(KERN_ERR "Magic number mismatch: %u != %u..\n", hashfs_sb->magic, HASHFS_MAGIC);
         goto release;
     }
 
@@ -68,9 +67,8 @@ void hashfs_save_sb(struct super_block *sb) {
     hashfs_trace("");
 
     hashfs_bread(sb, bh, sb_ptr, 
-                HASHFS_SUPERBLOCK_BLOCK_NO, HASHFS_SB_OFFSET_BYTE); 
+        HASHFS_SB_BLOCK_NO, HASHFS_SB_OFFSET_BYTE);
     memcpy(sb_ptr, HASHFS_SB(sb), sizeof(struct hashfs_superblock));
-
     hashfs_fini_bh(bh);
 }
 

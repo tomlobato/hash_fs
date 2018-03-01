@@ -7,79 +7,78 @@ long long hashfs_int_pow(long long x, long long y){
     return x;
 }
 
-void hashfs_print_h_sb_short(char *point, struct hashfs_superblock * h_sb){
-    hashfs_trace("----------- %s", point);
+void hashfs_print_h_sb_short(int pos, struct hashfs_superblock * h_sb){
+    // hashfs_trace("----------- %d\n", pos);
 
-    hashfs_trace("version %llu\n", h_sb->version);
-    hashfs_trace("magic %llu\n", h_sb->magic);
-    hashfs_trace("blocksize %llu\n", h_sb->blocksize);
+    // hashfs_trace("version %u\n", h_sb->version);
+    // hashfs_trace("magic %u\n", h_sb->magic);
+    hashfs_trace("blocksize %u\n", h_sb->blocksize);
 
-    hashfs_trace("uuid[16] %.*s\n", 16, h_sb->uuid); /* 128-bit uuid for volume */
+    // hashfs_trace("uuid[16] %.*s\n", 16, h_sb->uuid); /* 128-bit uuid for volume */
 
-    hashfs_trace("inode_count %llu\n", h_sb->inode_count);
-    hashfs_trace("free_inode_count %llu\n", h_sb->free_inode_count);
+    // hashfs_trace("inode_count %u\n", h_sb->inode_count);
+    // hashfs_trace("free_inode_count %u\n", h_sb->free_inode_count);
 
-    hashfs_trace("next_inode_byte %llu\n", h_sb->next_inode_byte); // next byte available inside inode area
-    hashfs_trace("next_data_blk %llu\n", h_sb->next_data_blk);   // next block available inside data area  
-    hashfs_trace("next_ino %llu\n", h_sb->next_ino);        // next inode number available
+    // hashfs_trace("next_inode_byte %u\n", h_sb->next_inode_byte); // next byte available inside inode area
+    // hashfs_trace("next_data_blk %u\n", h_sb->next_data_blk);   // next block available inside data area  
+    // hashfs_trace("next_ino %u\n", h_sb->next_ino);        // next inode number available
 
-    hashfs_trace("device_size %llu\n", h_sb->device_size); // bytes
+    // hashfs_trace("device_size %u\n", h_sb->device_size); // bytes
 }
 
 void hashfs_show_sb(struct super_block *sb){
-    struct buffer_head *bh;
-    
-    bh = sb_bread(sb, 0);
-    BUG_ON(!bh);
-    hashfs_print_h_sb_short("0",           (struct hashfs_superblock *)bh->b_data);
-    brelse(bh);
+    struct buffer_head *bh33;
+    char *p;
+    bh33 = sb_bread(sb, 0);
+    BUG_ON(!bh33);
+    p = bh33->b_data;
 
-    bh = sb_bread(sb, 0);
-    BUG_ON(!bh);
-    hashfs_print_h_sb_short("1024",        (struct hashfs_superblock *)(bh->b_data + 1024));
-    brelse(bh);
+    hashfs_print_h_sb_short(p - bh33->b_data, (struct hashfs_superblock *)p);
 
-    bh = sb_bread(sb, 0);
-    BUG_ON(!bh);
-    hashfs_print_h_sb_short("1024 + 1 sb", (struct hashfs_superblock *)(bh->b_data + 1024 + sizeof(struct hashfs_superblock)));
-    brelse(bh);
+    p += 1024;
+    hashfs_print_h_sb_short(p - bh33->b_data, (struct hashfs_superblock *)p);
+
+    p += 1024;
+    hashfs_print_h_sb_short(p - bh33->b_data, (struct hashfs_superblock *)p);
+
+    brelse(bh33);
 }
 
 void hashfs_print_h_sb(char *point, struct hashfs_superblock * h_sb){
     hashfs_trace("----------- %s", point);
 
-    hashfs_trace("version %llu\n", h_sb->version);
-    hashfs_trace("magic %llu\n", h_sb->magic);
-    hashfs_trace("blocksize %llu\n", h_sb->blocksize);
+    hashfs_trace("version %u\n", h_sb->version);
+    hashfs_trace("magic %u\n", h_sb->magic);
+    hashfs_trace("blocksize %u\n", h_sb->blocksize);
 
     hashfs_trace("uuid[16] %.*s\n", 16, h_sb->uuid); /* 128-bit uuid for volume */
 
-    hashfs_trace("bitmap_offset_blk %llu\n", h_sb->bitmap_offset_blk);
-    hashfs_trace("bitmap_size %llu\n", h_sb->bitmap_size);       // bytes
+    hashfs_trace("bitmap_offset_blk %u\n", h_sb->bitmap_offset_blk);
+    hashfs_trace("bitmap_size %u\n", h_sb->bitmap_size);       // bytes
 
-    hashfs_trace("hash_offset_blk %llu\n", h_sb->hash_offset_blk);
-    hashfs_trace("hash_size %llu\n", h_sb->hash_size);         // bytes
+    hashfs_trace("hash_offset_blk %u\n", h_sb->hash_offset_blk);
+    hashfs_trace("hash_size %u\n", h_sb->hash_size);         // bytes
 
-    hashfs_trace("inodes_offset_blk %llu\n", h_sb->inodes_offset_blk);
-    hashfs_trace("inodes_size %llu\n", h_sb->inodes_size);       // bytes
+    hashfs_trace("inodes_offset_blk %u\n", h_sb->inodes_offset_blk);
+    hashfs_trace("inodes_size %u\n", h_sb->inodes_size);       // bytes
 
-    hashfs_trace("data_offset_blk %llu\n", h_sb->data_offset_blk);
-    hashfs_trace("data_size %llu\n", h_sb->data_size);         // bytes
+    hashfs_trace("data_offset_blk %u\n", h_sb->data_offset_blk);
+    hashfs_trace("data_size %u\n", h_sb->data_size);         // bytes
 
-    hashfs_trace("inode_count %llu\n", h_sb->inode_count);
-    hashfs_trace("free_inode_count %llu\n", h_sb->free_inode_count);
-    hashfs_trace("hash_len %llu\n", h_sb->hash_len);          // number of slots in the hash
-    hashfs_trace("hash_slot_size %llu\n", h_sb->hash_slot_size);    // size in bytes of the hash slot
-    hashfs_trace("max_file_size %llu\n", h_sb->max_file_size);     // in bytes
+    hashfs_trace("inode_count %u\n", h_sb->inode_count);
+    hashfs_trace("free_inode_count %u\n", h_sb->free_inode_count);
+    hashfs_trace("hash_len %u\n", h_sb->hash_len);          // number of slots in the hash
+    hashfs_trace("hash_slot_size %u\n", h_sb->hash_slot_size);    // size in bytes of the hash slot
+    hashfs_trace("max_file_size %u\n", h_sb->max_file_size);     // in bytes
 
-    hashfs_trace("next_inode_byte %llu\n", h_sb->next_inode_byte); // next byte available inside inode area
-    hashfs_trace("next_data_blk %llu\n", h_sb->next_data_blk);   // next block available inside data area  
-    hashfs_trace("next_ino %llu\n", h_sb->next_ino);        // next inode number available
+    hashfs_trace("next_inode_byte %u\n", h_sb->next_inode_byte); // next byte available inside inode area
+    hashfs_trace("next_data_blk %u\n", h_sb->next_data_blk);   // next block available inside data area  
+    hashfs_trace("next_ino %u\n", h_sb->next_ino);        // next inode number available
 
-    hashfs_trace("sector_count %llu\n", h_sb->sector_count);
+    hashfs_trace("sector_count %u\n", h_sb->sector_count);
     hashfs_trace("sector_size %d\n", h_sb->sector_size);
-    hashfs_trace("block_count %llu\n", h_sb->block_count);
-    hashfs_trace("device_size %llu\n", h_sb->device_size); // bytes
+    hashfs_trace("block_count %u\n", h_sb->block_count);
+    hashfs_trace("device_size %u\n", h_sb->device_size); // bytes
 }
 
 void hashfs_print_h_inode(char *point, struct hashfs_inode * ino){
@@ -94,7 +93,7 @@ void hashfs_print_h_inode(char *point, struct hashfs_inode * ino){
     hashfs_trace("block \t %u\n", ino->block);       // bytes
 
     hashfs_trace("size \t %u \n", ino->size);
-    hashfs_trace("name \t --%*.s-- \n", ino->name_size, ino->name);         // bytes
+    hashfs_trace("name \t --%.*s-- \n", ino->name_size, ino->name);         // bytes
     hashfs_trace("name_size \t %u \n", ino->name_size);         // bytes
 
     hashfs_trace("next \t %u\n", ino->next);
@@ -103,7 +102,6 @@ void hashfs_print_h_inode(char *point, struct hashfs_inode * ino){
 void pcache_vs_disk(struct super_block *sb, struct hashfs_superblock *h_sb){
     unsigned 
         *pos,
-        *ptr,
         bnum = 100, 
         i, 
         j_max,
@@ -124,7 +122,7 @@ void pcache_vs_disk(struct super_block *sb, struct hashfs_superblock *h_sb){
         get_random_bytes(&k, sizeof(int));
         pos[i] = k % (h_sb->block_count - 1000000); // bug on mkfs? why last 1M blocks cannot be accessed?
     }
-    pr_info("block_count=%llu \n", h_sb->block_count);
+    pr_info("block_count=%u \n", h_sb->block_count);
 
     // noop
     do_gettimeofday(&t0);

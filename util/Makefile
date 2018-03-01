@@ -6,7 +6,7 @@ EXEC = mkfs debugfs fsck
 
 all: $(EXEC)
 
-$(EXEC): %: %.c $(LLIBS) common.h
+$(EXEC): %: %.c $(LLIBS) common.h ../kmod/hashfs.h
 	$(CC) $(CFLAGS) $(LIBS) $< -o $@
 
 clean:

@@ -39,7 +39,7 @@ cmd_map = {
         [ -z "`grep #{dev} /proc/mounts`" ] || sudo umount #{dev}
         [ -z "`grep #{mod} /proc/modules`" ] || sudo rmmod #{mod}
 
-        # ./helpers/zerofy_hd
+        ./helpers/zerofy_hd
 
         ./util/mkfs #{dev} > /dev/null
 

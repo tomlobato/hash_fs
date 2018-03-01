@@ -43,21 +43,51 @@ void test_error(){
 }
 
 void struct_size(){
-    struct y {
-        uint8_t mode_uid_gid_idx;	
-        uint32_t mtime;
-        uint8_t flags;
-        uint32_t ino;
-        uint32_t block; 
-        uint32_t size;  
-        uint8_t name_size;
-        char *fname[48];
-        uint32_t next;
-    };
+struct y {
+    uint32_t magic;
+    uint16_t version;
+    uint16_t blocksize;
 
-    printf("%lu\n", sizeof(struct hashfs_inode));
+    uint32_t bitmap_offset_blk;
+    uint32_t bitmap_size;       // bytes
+
+    uint32_t hash_offset_blk;
+    uint32_t hash_size;         // bytes
+
+    uint32_t inodes_offset_blk;
+    uint32_t inodes_size;       // bytes
+
+    uint32_t data_offset_blk;
+    uint32_t data_size;         // bytes
+    
+    uint32_t inode_count;
+    uint32_t free_inode_count;
+    uint32_t hash_len;          // number of slots in the hash
+    uint32_t max_file_size;     // bytes
+
+    uint32_t next_inode_byte; // next byte available inside inode area
+    uint32_t next_data_blk;   // next block available inside data area  
+    uint32_t next_ino;        // next inode number available
+
+    uint32_t sector_count;
+    uint32_t block_count;
+    uint32_t device_size; // bytes
+
+    uint8_t  uuid[16]; /* 128-bit uuid for volume */
+
+    uint16_t sector_size;
+    uint8_t  hash_slot_size;    // size in bytes of the hash slot
+
+    uint8_t  pad[1];    // size in bytes of the hash slot
+
+// #ifdef KERN_MOD
+//     spinlock_t lock;
+// #endif
+};
+
+    // printf("%lu\n", sizeof(struct hashfs_inode));
     printf("%lu\n", sizeof(struct y));
-    printf("%lu\n", sizeof(((struct y *)0)->block));
+    // printf("%lu\n", sizeof(((struct y *)0)->block));
 }
 
 void create(char *path){

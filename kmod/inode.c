@@ -20,8 +20,8 @@ inline void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
     inode->i_op = &hashfs_inode_ops;
 
     inode->i_blocks = divceil(h_inode->size, sb->s_blocksize);
-    inode->i_bytes = h_inode->size;
-    inode->i_size = sb->s_blocksize * inode->i_blocks;
+    inode->i_bytes = h_inode->size;//h_inode->size;
+    inode->i_size = h_inode->size; //234;//sb->s_blocksize * inode->i_blocks;
 
     inode->i_atime = inode->i_mtime 
                    = inode->i_ctime
@@ -34,31 +34,83 @@ inline void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
 
     inode->i_fop = &hashfs_file_operations;
     inode->i_mode = HASHFS_DEFAULT_MODE_FILE;
+
+        // hashfs_print_h_inode("hashfs_fill_inode", h_inode);
+
 }
 
-static  int hashfs_save_inode(struct super_block *sb, struct hashfs_inode *h_inode){
+int hashfs_save_inode(struct super_block *sb, struct hashfs_inode *h_inode, int inode_offset){
     void *ptr_ino = NULL;
     struct buffer_head *bh_ino = NULL;
     struct hashfs_superblock *h_sb;
-    
+
+
+    struct hashfs_inode *h_inode_walk;
+    struct buffer_head *bh_ino_walk = NULL,
+                       *bh_bitm = NULL,
+                       *bh_hash = NULL;
+    void *hash_key_ptr;
+    long unsigned *ptr_bitmap;
+    uint32_t
+        slot,
+        walk_ino_off;
+
     hashfs_trace("name=%.*s len=%d\n", h_inode->name_size, h_inode->name, h_inode->name_size);
 
     h_sb = HASHFS_SB(sb);
 
+    if (inode_offset == -1) {
+        slot = hashfs_slot(h_inode->name, 
+                                h_inode->name_size, h_sb->hash_len);
+
+        // bitmap
+        hashfs_bread(sb, bh_bitm, ptr_bitmap, 
+                    h_sb->bitmap_offset_blk, slot / BIB);
+        if (!test_bit(slot % BIB, ptr_bitmap)) {
+            return ENOENT;
+        }
+
+        // hash
+        hashfs_bread(sb, bh_hash, hash_key_ptr, 
+                    h_sb->hash_offset_blk, slot * h_sb->hash_slot_size);
+        walk_ino_off = 0;
+        memcpy(&walk_ino_off, hash_key_ptr, h_sb->hash_slot_size);
+
+        // inode
+        while (1) {
+            hashfs_brelse_if(bh_ino_walk);
+            hashfs_bread(sb, bh_ino_walk, h_inode_walk, 
+                h_sb->inodes_offset_blk, walk_ino_off);
+
+            if (h_inode_walk->name_size == h_inode->name_size &&
+                strncmp(h_inode_walk->name, h_inode->name, h_inode_walk->name_size) == 0)
+            {
+                inode_offset = walk_ino_off;
+                break;
+            } else {
+                if (h_inode_walk->flags & HASHFS_INO_FLAG_MORE_IN_BUCKET) {
+                    walk_ino_off = h_inode_walk->next;
+                } else {
+                    return ENOENT;
+                }
+            }
+        }
+    }
+
     hashfs_bread(sb, bh_ino, ptr_ino, 
-        h_sb->inodes_offset_blk, h_sb->next_inode_byte);
+        h_sb->inodes_offset_blk, inode_offset);
     memcpy(ptr_ino, h_inode, sizeof(struct hashfs_inode));
     hashfs_fini_bh(bh_ino);
+    // mark_buffer_dirty_inode(bh_ino, h_inode);
+    // brelse(bh_ino);
+        // hashfs_print_h_inode("ip4...", inode->i_private);
+        // hashfs_print_h_inode("hashfs_save_inode", h_inode);
 
     return 0;
 }
 
 static inline void hashfs_init_inode(struct hashfs_inode *i){
-    i->block = 0; 
-    i->size = 0;  
-    i->next = 0;
-    i->mode_uid_gid_idx = 0;	
-    i->flags = 0;
+    memset(i, 0, sizeof(struct hashfs_inode));
 }
 
 static inline int hashfs_save(struct super_block *sb, struct inode *inode, struct dentry * dentry, umode_t mode){
@@ -85,7 +137,9 @@ static inline int hashfs_save(struct super_block *sb, struct inode *inode, struc
     h_inode->name_size = dentry->d_name.len;
     memcpy(h_inode->name, dentry->d_name.name, dentry->d_name.len);
 
-    if (hashfs_save_inode(sb, h_inode)) {
+    // hashfs_print_h_inode("just created", h_inode);
+
+    if (hashfs_save_inode(sb, h_inode, h_sb->next_inode_byte)) {
         ret = EIO;
         goto release;
     }
@@ -134,7 +188,10 @@ static inline int hashfs_save(struct super_block *sb, struct inode *inode, struc
     h_sb->next_inode_byte += sizeof(struct hashfs_inode);
     h_sb->next_ino++;
     h_sb->free_inode_count--;
+
+    // hashfs_show_sb(sb);
     hashfs_save_sb(sb);
+    // hashfs_show_sb(sb);
 
     // set system inode
 	hashfs_fill_inode(sb, inode, h_inode);
@@ -198,7 +255,12 @@ struct dentry *hashfs_lookup(struct inode *dir,
                 dentry->d_name.len, dentry->d_name.name, dentry);
 
     sb = dir->i_sb;
+    // hashfs_show_sb(sb);
     h_sb = HASHFS_SB(sb);
+
+
+    // sb-> 
+    // hashfs_save_sb(struct super_block *sb);
 
     // pcache_vs_disk(sb, h_sb);
 
@@ -241,6 +303,8 @@ set_inode:
         goto out;
     }
     hashfs_fill_inode(sb, inode, h_inode);
+        // hashfs_print_h_inode("hashfs_lookup", h_inode);
+        // hashfs_print_h_inode("ip4...", inode->i_private);
 
 out:
     hashfs_brelse_if(bh_bitm);

@@ -54,6 +54,7 @@ void hashfs_fill_inode(struct super_block *sb, struct inode *inode,
                         struct hashfs_inode *hashfs_inode);
 long long hashfs_int_pow(long long x, long long y);
 void hashfs_save_sb(struct super_block *sb);
+int hashfs_save_inode(struct super_block *sb, struct hashfs_inode *h_inode, int inode_offset);
 
 int hashfs_unlink(struct inode * dir, struct dentry *dentry);
 
@@ -65,7 +66,9 @@ extern struct kmem_cache *hashfs_inode_cache;
 
 void hashfs_print_h_sb(char *point, struct hashfs_superblock * h_sb);
 void hashfs_print_h_inode(char *point, struct hashfs_inode * ino);
-void hashfs_print_h_sb_short(char *point, struct hashfs_superblock * h_sb);
+// void hashfs_print_h_sb_short(char *point, struct hashfs_superblock * h_sb);
+void hashfs_print_h_sb_short(int pos, struct hashfs_superblock * h_sb);
+
 void hashfs_show_sb(struct super_block *sb);
 uint64_t _pcache_vs_disk(struct super_block *sb, struct hashfs_superblock *h_sb, int bnum, int *pos);
 void pcache_vs_disk(struct super_block *sb, struct hashfs_superblock *h_sb);
@@ -107,6 +110,9 @@ static inline int hashfs_has_data(struct hashfs_inode *h_inode) {
     return h_inode->flags & HASHFS_INO_FLAG_HAS_DATA;
 }
 
+static inline int hashfs_data_blk(struct hashfs_superblock *h_sb, struct hashfs_inode *h_inode, uint32_t offs) {
+    return h_sb->data_offset_blk + h_inode->block + offs;
+}
 
 #endif /*__KHASHFS_H__*/
 

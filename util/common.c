@@ -427,20 +427,20 @@ int get_fs_inode_count(){
 void print_superblock(struct hashfs_superblock *sb) {    
     printf("disk size\t%.2lf GB\n", 
         (double)sb->device_size / pow(2, 30));
-    printf("block size\t%lu Bytes\n\n", 
+    printf("block size\t%u Bytes\n\n", 
         sb->blocksize);
 
-    printf("inode count\t%lu\n", 
+    printf("inode count\t%u\n", 
         sb->inode_count);
     printf("inode size\t%lu Bytes\n\n", 
         sizeof(struct hashfs_inode));
 
-    printf("hash length\t%lu\n", 
+    printf("hash length\t%u\n", 
         sb->hash_len);
-    printf("hash slot size\t%lu Bytes\n\n", 
+    printf("hash slot size\t%u Bytes\n\n", 
         sb->hash_slot_size);
 
-    printf("max fname len\t%ld\n",
+    printf("max fname len\t%lu\n",
         HASHFS_NAME_LEN);
     printf("max file size\t%.2lf TB\n\n", 
         sb->max_file_size / pow(2, 40));
@@ -459,22 +459,22 @@ void print_superblock(struct hashfs_superblock *sb) {
         100.0 * sb->data_offset_blk * sb->blocksize / sb->device_size);
 
     // var
-    printf("bitmap_offset_blk\t%lu\n", sb->bitmap_offset_blk);
-    printf("hash_offset_blk  \t%lu\n", sb->hash_offset_blk);
-    printf("inodes_offset_blk\t%lu\n", sb->inodes_offset_blk);
-    printf("data_offset_blk  \t%lu\n", sb->data_offset_blk);
-    printf("free_inode_count \t%lu\n", sb->free_inode_count);
-    printf("next_inode_byte  \t%lu\n", sb->next_inode_byte);
-    printf("next_data_blk    \t%lu\n", sb->next_data_blk);
-    printf("next_ino         \t%lu\n", sb->next_ino);
+    printf("bitmap_offset_blk\t%u\n", sb->bitmap_offset_blk);
+    printf("hash_offset_blk  \t%u\n", sb->hash_offset_blk);
+    printf("inodes_offset_blk\t%u\n", sb->inodes_offset_blk);
+    printf("data_offset_blk  \t%u\n", sb->data_offset_blk);
+    printf("free_inode_count \t%u\n", sb->free_inode_count);
+    printf("next_inode_byte  \t%u\n", sb->next_inode_byte);
+    printf("next_data_blk    \t%u\n", sb->next_data_blk);
+    printf("next_ino         \t%u\n", sb->next_ino);
 }
 
 void print_superblock_thin(struct hashfs_superblock *sb) {
-    printf("file count\t%lu\n", 
+    printf("file count\t%u\n", 
         sb->inode_count - sb->free_inode_count);
-    printf("next_inode_byte  \t%lu\n", sb->next_inode_byte);
+    printf("next_inode_byte  \t%u\n", sb->next_inode_byte);
     // printf("next_data_blk    \t%lu\n", sb->next_data_blk);
-    printf("next_ino         \t%lu\n\n", sb->next_ino);
+    printf("next_ino         \t%u\n\n", sb->next_ino);
 }
 
 void show_sb(){
@@ -502,11 +502,13 @@ void print_h_inode(char *point, struct hashfs_inode * ino){
 }
 
 void print_h_inode_thin(char *prefix, struct hashfs_inode * i, int bucket_pos){
-    printf("%s ino=%u name=%.*s flg=%u nxt=%u pos=%d \n", 
+    printf("%s ino=%u name=%.*s flg=%u blk=%u sz=%u nxt=%u pos=%d \n", 
         prefix,
         i->ino,
         i->name_size, i->name,
         i->flags,
+        i->block,
+        i->size,
         i->next,
         bucket_pos
     );
