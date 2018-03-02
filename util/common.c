@@ -424,7 +424,7 @@ int get_fs_inode_count(){
     return ic;
 }
 
-void print_superblock(struct hashfs_superblock *sb) {    
+void print_superblock(struct hashfs_superblock *sb) {
     printf("disk size\t%.2lf GB\n", 
         (double)sb->device_size / pow(2, 30));
     printf("block size\t%u Bytes\n\n", 

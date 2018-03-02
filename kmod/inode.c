@@ -107,7 +107,7 @@ int hashfs_save_inode(struct super_block *sb, struct hashfs_inode *h_inode, int 
     memcpy(ptr_ino, h_inode, sizeof(struct hashfs_inode));
     hashfs_fini_bh(bh_ino);
 
-        hashfs_print_h_inode("hashfs_save_inode", h_inode);
+        // hashfs_print_h_inode("hashfs_save_inode", h_inode);
 
     // mark_buffer_dirty_inode(bh_ino, h_inode);
     // brelse(bh_ino);

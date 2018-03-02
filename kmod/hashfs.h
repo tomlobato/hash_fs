@@ -43,9 +43,9 @@ struct hashfs_superblock {
     uint32_t next_data_blk;   // next block available inside data area  
     uint32_t next_ino;        // next inode number available
 
-    uint32_t sector_count;
     uint32_t block_count;
-    uint32_t device_size; // bytes
+    uint64_t sector_count;
+    uint64_t device_size; // bytes
 
     uint16_t sector_size;
     uint8_t  hash_slot_size;    // size in bytes of the hash slot
@@ -76,4 +76,4 @@ struct hashfs_inode {
 #define HASHFS_NAME_LEN sizeof(((struct hashfs_inode *)0)->name)
 
 // Util
-#define divceil(x, y) x / y + (x % y ? 1 : 0)
+#define divceil(x, y) (x) / (y) + ((x) % (y) ? 1 : 0)

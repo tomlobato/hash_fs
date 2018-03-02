@@ -75,10 +75,10 @@ void hashfs_print_h_sb(char *point, struct hashfs_superblock * h_sb){
     hashfs_trace("next_data_blk %u\n", h_sb->next_data_blk);   // next block available inside data area  
     hashfs_trace("next_ino %u\n", h_sb->next_ino);        // next inode number available
 
-    hashfs_trace("sector_count %u\n", h_sb->sector_count);
+    hashfs_trace("sector_count %llu\n", h_sb->sector_count);
     hashfs_trace("sector_size %d\n", h_sb->sector_size);
     hashfs_trace("block_count %u\n", h_sb->block_count);
-    hashfs_trace("device_size %u\n", h_sb->device_size); // bytes
+    hashfs_trace("device_size %llu\n", h_sb->device_size); // bytes
 }
 
 void hashfs_print_h_inode(char *point, struct hashfs_inode * ino){

@@ -279,8 +279,12 @@ void show_fs(char *dev){
                     lseek(ino_fd, h_sb->inodes_offset_blk * h_sb->blocksize + inode_offset, SEEK_SET); 
                     read(ino_fd, &h_inode, sizeof(struct hashfs_inode));
                     print_h_inode_thin("\t", &h_inode, bucket_pos++);
-                    if (h_inode.next)
-                        inode_offset = h_inode.next;
+                    if (h_inode.next || (h_inode.flags & HASHFS_INO_FLAG_HAS_DATA))
+                        if (!h_inode.next || (h_inode.flags ^ HASHFS_INO_FLAG_HAS_DATA)) {
+                            printf("inconsistent linked list\n");
+                            break;
+                        } else
+                            inode_offset = h_inode.next;
                     else
                         break;
                 }
