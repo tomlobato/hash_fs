@@ -9,10 +9,8 @@ static int hashfs_fill_super(struct super_block *sb, void *data, int silent) {
 
     hashfs_trace("data=%s\n", (char *)data);
 
-    bh = sb_bread(sb, HASHFS_SB_BLOCK_NO);
+    hashfs_bread(sb, bh, hashfs_sb, HASHFS_SB_BLOCK_NO, HASHFS_SB_OFFSET_BYTE);
     BUG_ON(!bh);
-
-    hashfs_sb = (struct hashfs_superblock *)(bh->b_data + HASHFS_SB_OFFSET_BYTE);
 
     if (unlikely(hashfs_sb->magic != HASHFS_MAGIC)) {
         printk(KERN_ERR "Magic number mismatch: %u != %u..\n", hashfs_sb->magic, HASHFS_MAGIC);

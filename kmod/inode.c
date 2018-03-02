@@ -67,6 +67,7 @@ int hashfs_save_inode(struct super_block *sb, struct hashfs_inode *h_inode, int 
         hashfs_bread(sb, bh_bitm, ptr_bitmap, 
                     h_sb->bitmap_offset_blk, slot / BIB);
         if (!test_bit(slot % BIB, ptr_bitmap)) {
+            brelse(bh_bitm);
             return ENOENT;
         }
 
@@ -95,12 +96,19 @@ int hashfs_save_inode(struct super_block *sb, struct hashfs_inode *h_inode, int 
                 }
             }
         }
+
+        brelse(bh_bitm);
+        brelse(bh_hash);
+        brelse(bh_ino_walk);
     }
 
     hashfs_bread(sb, bh_ino, ptr_ino, 
         h_sb->inodes_offset_blk, inode_offset);
     memcpy(ptr_ino, h_inode, sizeof(struct hashfs_inode));
     hashfs_fini_bh(bh_ino);
+
+        hashfs_print_h_inode("hashfs_save_inode", h_inode);
+
     // mark_buffer_dirty_inode(bh_ino, h_inode);
     // brelse(bh_ino);
         // hashfs_print_h_inode("ip4...", inode->i_private);

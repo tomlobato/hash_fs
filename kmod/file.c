@@ -15,10 +15,11 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len,
         last_blk_new, 
         last_disk_blk,
         meta_len, 
-        extent_cnt;
+        extent_cnt, x;
 
     hashfs_print_h_inode("hashfs_write", filp->f_path.dentry->d_inode->i_private);
-
+// *ppos += len;
+    // return len;
     hashfs_trace("len=%d pos=%lu data='%.*s' \n", (int)len, (unsigned long)*ppos, 
         (int)(len < 20 ? len : 20), buf);
 
@@ -44,7 +45,8 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len,
             last_blk_new = divceil(*ppos + len - h_inode->size - h_inode->size % h_sb->blocksize, h_sb->blocksize);
         }
     } else {
-        last_blk_new = h_sb->next_data_blk + divceil(*ppos + len + 3 * sizeof(int32_t), h_sb->blocksize);
+        last_blk_new = h_sb->next_data_blk + 
+            (*ppos + len + 3 * sizeof(int32_t)) / h_sb->blocksize;
     }
 
     // Save the data pointers to the end of the new last_block
@@ -52,8 +54,15 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len,
     if (last_blk_new != -1) {
         if (last_blk_new > last_disk_blk)
                 return -ENOSPC;
-                
-        hashfs_bread(sb, bh2, meta_ptr2, hashfs_data_blk(h_sb, h_inode, last_blk_new), h_sb->blocksize);
+
+        x = hashfs_data_blk(h_sb, h_inode, last_blk_new);
+
+        pr_info("last_blk_new=%d x=%d \n", last_blk_new, x);
+
+// *ppos += len;
+// return len;
+
+        hashfs_bread(sb, bh2, meta_ptr2, x, h_sb->blocksize);
 
         if (hashfs_has_data(h_inode)) {
             memcpy(meta_ptr2 - meta_len, 
@@ -84,6 +93,9 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len,
     //     bh3 = bh2;
     //     bh2 = NULL;
     // } else {
+            // return h_sb->data_offset_blk + h_inode->block + offs;
+        // hashfs_bread(sb, bh3, dsk_ptr, h_sb->data_offset_blk, *ppos);        
+
         hashfs_bread(sb, bh3, dsk_ptr, hashfs_data_blk(h_sb, h_inode, *ppos / h_sb->blocksize), *ppos);        
     // }
 
@@ -103,8 +115,11 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len,
     // if (hashfs_has_data(h_inode))
     h_inode->block = h_sb->next_data_blk;    
     // pr_info("ino=%u\n", h_inode->ino);
-    hashfs_save_inode(sb, h_inode, -1);
-	mark_inode_dirty(inode);
+    if(hashfs_save_inode(sb, h_inode, -1)) {
+        pr_err("Erro saving inode.");
+        return -EFAULT;
+    }
+	// mark_inode_dirty(inode);
 
     h_sb->next_data_blk += divceil(len, h_sb->blocksize);
     hashfs_save_sb(sb);

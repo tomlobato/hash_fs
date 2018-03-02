@@ -60,16 +60,16 @@ struct hashfs_superblock {
 #define HASHFS_INO_FLAG_HAS_DATA        (1 << 1)
 
 struct hashfs_inode {
-    char name[64];
-    uint32_t block; 
-    uint32_t size;  
     uint32_t next;
     uint32_t mtime;
+    char name[104];
+    uint32_t block; 
+    uint32_t size;  
     uint32_t ino;
     uint8_t mode_uid_gid_idx;	
     uint8_t flags;
     uint8_t name_size;
-    uint8_t pad2[41];
+    uint8_t pad[1];
 };
 
 #define HASHFS_SIZE_LEN sizeof(((struct hashfs_inode *)0)->size)
