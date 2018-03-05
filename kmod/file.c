@@ -29,9 +29,10 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len, loff
         new_ext_len,
         new_ext_start,
         pos,
-        total_blks;
+        total_blks,
+        to_blk_end;
 
-    hashfs_trace("len=%d pos=%lu data='%.*s' \n", (int)len, (unsigned long)*ppos, 
+    hashfs_trace("--- len=%d pos=%lu data='%.*s' \n", (int)len, (unsigned long)*ppos, 
         (int)(len < 20 ? len : 20), buf);
 
     inode = filp->f_path.dentry->d_inode;
@@ -46,14 +47,15 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len, loff
 
     if (hashfs_has_data(h_inode)) {
         hashfs_bread(sb, bh, meta_ptr, 
-            h_sb->data_offset_blk + h_inode->block, h_sb->blocksize);
+            h_sb->data_offset_blk + h_inode->block, h_sb->blocksize-4);
+        meta_ptr++;
 
-        ext_cnt = *meta_ptr--;
+        ext_cnt = *(meta_ptr--);
 
         meta_len = (1 + 2 * ext_cnt) * sizeof(int32_t);
         
         total_blks = 0;
-        for(i = 1; i <= ext_cnt; i++)
+        for(i = 0; i < ext_cnt; i++)
             total_blks += *(meta_ptr -= 2);
 
         last_blk_current = *meta_ptr + *(meta_ptr + 1) - 1;
@@ -79,8 +81,6 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len, loff
         meta_len_new = 3 * sizeof(int32_t);
         new_ext_start = h_sb->next_data_blk;
         new_ext_len = divceil(*ppos + len + meta_len_new, h_sb->blocksize);
-        // pr_info("*ppos=%llu len=%lu meta_len_new=%d h_sb->blocksize=%u new_ext_len=%d x=%d 21=%llu \n", *ppos, len, meta_len_new, h_sb->blocksize, new_ext_len, divceil(21, 4096), *ppos + len + meta_len_new);
-
     }
 
     // Move or create data pointers if needed
@@ -94,21 +94,27 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len, loff
         if (h_sb->data_offset_blk + last_blk_new >= h_sb->block_count)
             return -ENOSPC;
 
-        hashfs_bread(sb, bh2, meta_ptr2, 
-            h_sb->data_offset_blk + last_blk_new, h_sb->blocksize);
+        pr_info("last_blk_new=%d \n", last_blk_new);
+
+        bh2 = sb_bread(sb, h_sb->data_offset_blk + last_blk_new);
+        BUG_ON(!bh2);
+        meta_ptr2 = (int32_t *)(bh2->b_data + h_sb->blocksize);
 
         if (hashfs_has_data(h_inode)) {
             memcpy(meta_ptr2 - meta_len, 
                    meta_ptr  - meta_len, 
                    meta_len);
             (*(meta_ptr2 - 1))++;
+            pr_info("1 ext_cnt=%d \n", *(meta_ptr2 - 1));
             meta_ptr2 -= meta_len;
-        } else
+        } else {
             *(meta_ptr2 -= 1) = 1;
+            pr_info("2 ext_cnt=%d \n", 1);
+        }
 
         *(meta_ptr2 -= 1) = new_ext_start;
         *(meta_ptr2 -= 1) = new_ext_len;
-        // pr_info("new_ext_start=%d new_ext_len=%d \n", new_ext_start, new_ext_len);
+        pr_info("writing meta: nes=%d nel=%d \n", new_ext_start, new_ext_len);
 
         mark_buffer_dirty(bh2);
     }
@@ -120,8 +126,9 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len, loff
 
     // inode
 
-    hashfs_bread(sb, bh, meta_ptr,
-            h_sb->data_offset_blk + last_blk_new, h_sb->blocksize);
+    bh = sb_bread(sb, h_sb->data_offset_blk + last_blk_new);
+    BUG_ON(!bh);
+    meta_ptr = (int32_t *)(bh->b_data + h_sb->blocksize);
 
     meta_ptr -= 1;
     ext_cnt = *meta_ptr;
@@ -131,7 +138,8 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len, loff
     ext_end_file_off = 0;
     written = 0;
 
-    while(ext_cnt--){ // walk through extents
+    // walk through extents
+    while(ext_cnt--){ 
         meta_ptr -= 2;
         ext_bytes = *meta_ptr * h_sb->blocksize;
         ext_start_blk = *(meta_ptr + 1);
@@ -139,13 +147,22 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len, loff
         ext_end_file_off += ext_bytes;
 
         pr_info("ext_cnt=%d ext_bytes=%d ext_start_blk=%d ext_start_file_off=%d ext_end_file_off=%d h_sb->data_offset_blk=%d \n", 
-                 ext_cnt,    ext_bytes,  ext_start_blk,   ext_start_file_off,   ext_end_file_off,   h_sb->data_offset_blk);
+                 ext_cnt,   ext_bytes,   ext_start_blk,   ext_start_file_off,   ext_end_file_off,   h_sb->data_offset_blk);
 
-        while (pos < ext_end_file_off && written < len) { // walk through blocks
+        // walk through blocks in the current extent
+        while (pos >= ext_start_file_off &&
+               pos < ext_end_file_off && 
+               written < len) { 
 
-            pr_info("pos=%d\n", pos);
-            // written = len;
-            // goto out;
+            pr_info("pos=%d written=%lu \n", pos, written);
+
+            pr_info("do=%d esb=%d dob+esb=%d p=%d esfo=%d p-esfo=%d \n", 
+                     h_sb->data_offset_blk, 
+                           ext_start_blk, 
+                                  h_sb->data_offset_blk + ext_start_blk, 
+                                             pos, 
+                                                  ext_start_file_off, 
+                                                          pos - ext_start_file_off);
 
             hashfs_brelse_if(bh2);
             hashfs_bread(sb, bh2, dsk_ptr,
@@ -153,9 +170,10 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len, loff
                     pos - ext_start_file_off);
 
             to_wrt = len - written;
-            if (to_wrt > h_sb->blocksize)
-                to_wrt = h_sb->blocksize;
-            to_wrt -= pos % h_sb->blocksize;
+
+            to_blk_end = h_sb->blocksize - pos % h_sb->blocksize;
+            if (to_wrt > to_blk_end)
+                to_wrt = to_blk_end;
 
             pr_info("to_wrt=%lu\n", to_wrt);
             memcpy(dsk_ptr, buf, to_wrt);
@@ -164,7 +182,6 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len, loff
             pos += to_wrt;
 
             mark_buffer_dirty(bh2);
-            // break;
         }
     }
 
@@ -190,6 +207,7 @@ ssize_t hashfs_write(struct file *filp, const char __user *buf, size_t len, loff
     hashfs_save_sb(sb);
 
     *ppos += written;
+    pr_info("leaving: *ppos=%lld written=%ld \n", *ppos, written);
     return written;
 }
 
@@ -209,7 +227,8 @@ ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len, loff_t *ppo
         ext_start_blk,
         ext_start_file_off,
         last_blk_new, 
-        pos;
+        pos,
+        to_blk_end;
 
     hashfs_trace("--- len=%d pos=%lu\n", (int)len, (unsigned long)*ppos);
 
@@ -229,15 +248,16 @@ ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len, loff_t *ppo
     } else if (*ppos == h_inode->size) {
         return 0;
     }
-
+hashfs_print_h_inode("kk", h_inode);
     if (!hashfs_has_data(h_inode)) {
         pr_err("Inode has no data flag set flag=%d \n", h_inode->flags);
         return -EFAULT;
     }
-
-    hashfs_bread(sb, bh, meta_ptr,
-            h_sb->data_offset_blk + last_blk_new, h_sb->blocksize);
-
+   
+    bh = sb_bread(sb, h_sb->data_offset_blk + last_blk_new);
+    BUG_ON(!bh);
+    meta_ptr = (int32_t *)(bh->b_data + h_sb->blocksize);
+   
     ext_cnt = *(--meta_ptr);
 
     pos = *ppos;
@@ -258,17 +278,25 @@ ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len, loff_t *ppo
 
             pr_info("pos=%d\n", pos);
 
+            pr_info("do=%d esb=%d dob+esb=%d p=%d esfo=%d p-esfo=%d \n", 
+                     h_sb->data_offset_blk, 
+                           ext_start_blk, 
+                                  h_sb->data_offset_blk + ext_start_blk, 
+                                             pos, 
+                                                  ext_start_file_off, 
+                                                          pos - ext_start_file_off);
+
             hashfs_brelse_if(bh);
             hashfs_bread(sb, bh, dsk_ptr,
                     h_sb->data_offset_blk + ext_start_blk,
                     pos - ext_start_file_off);
 
             to_read = len - was_read;
-            if (to_read > h_sb->blocksize)
-                to_read = h_sb->blocksize;
-            if (to_read > h_inode->size)
-                to_read = h_inode->size;
-            to_read -= pos % h_sb->blocksize;
+
+            to_blk_end = h_sb->blocksize - pos % h_sb->blocksize;
+
+            if (to_read > to_blk_end)
+                to_read = to_blk_end;
 
             pr_info("to_read=%lu\n", to_read);
 
@@ -283,7 +311,6 @@ ssize_t hashfs_read(struct file *filp, char __user *buf, size_t len, loff_t *ppo
         }
     }
 
-out:
     hashfs_brelse_if(bh);
     *ppos += was_read;
     return was_read;

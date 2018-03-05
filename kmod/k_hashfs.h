@@ -106,10 +106,6 @@ static inline struct hashfs_inode *HASHFS_INODE(struct inode *inode) {
     return inode->i_private;
 }
 
-static inline int hashfs_has_data(struct hashfs_inode *h_inode) {
-    return h_inode->flags & HASHFS_INO_FLAG_HAS_DATA;
-}
-
 static inline int hashfs_data_blk(struct hashfs_superblock *h_sb, struct hashfs_inode *h_inode, uint32_t offs) {
     return h_sb->data_offset_blk + h_inode->block + offs;
 }
