@@ -8,7 +8,7 @@ with a specific workload in mind:
 #### It Uses... ####
 
 - The ridiculously fast XXHash, borrowed from dev kernel to the currently stable 4.15.10 (https://lwn.net/Articles/726337/).
-- Block Extents for file data, mapped in a array stored at the end of the last data block.
+- A list of block Extents for file data, mapped in a array [(start, length), ...] stored at the end of the last data block.
 
 #### Disk Layout
 
