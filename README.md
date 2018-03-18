@@ -1,10 +1,10 @@
 HashFs is a [flat filesystem](https://en.wikipedia.org/wiki/File_system#Flat_file_systems) written for learning purposes 
-with a specific use case in mind: media server storage.
+with a specific workload in mind:
 
-- stores milions of files,
-- high creat, low unlink rates,
-- fast file lookup.
-  
+- Stores milions of files,
+- High creat, low unlink rates,
+- Fast file lookup.
+
 #### Disk Layout
 
 blk 0 / byte 1024    
