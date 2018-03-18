@@ -5,6 +5,11 @@ with a specific workload in mind:
 - High creat, low unlink rates,
 - Fast file lookup.
 
+#### It Uses... ####
+
+- The ridiculously fast XXHash, borrowed from dev kernel to the currently stable 4.15.10 (https://lwn.net/Articles/726337/).
+- Block Extents for file data, mapped in a array stored at the end of the last data block.
+
 #### Disk Layout
 
 blk 0 / byte 1024    
